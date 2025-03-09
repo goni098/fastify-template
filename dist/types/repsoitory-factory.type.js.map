@@ -1,0 +1,1 @@
+{"version":3,"sources":["../../src/types/repsoitory-factory.type.ts"],"sourcesContent":["import type { PrismaClient } from \"@prisma/client/extension\"\n\nexport type RepositoryFactory<R> = new (prisma: PrismaClient) => R\n"],"names":[],"mappings":"AAEA,WAAkE"}

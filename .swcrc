@@ -1,0 +1,20 @@
+{
+	"$schema": "https://swc.rs/schema.json",
+	"jsc": {
+		"baseUrl": "./",
+		"paths": {
+			"@root/*": ["src/*"]
+		},
+		"parser": {
+			"syntax": "typescript",
+			"tsx": false,
+			"dynamicImport": false,
+			"decorators": false
+		},
+		"target": "es2020"
+	},
+	"sourceMaps": true,
+	"module": {
+		"type": "es6"
+	}
+}
