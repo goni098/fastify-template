@@ -22,4 +22,18 @@ export class UserRepository {
 			E.catchTag("NoSuchElementException", () => E.fail(new NoneError()))
 		)
 	}
+
+	save(name: string) {
+		return pipe(
+			E.tryPromise({
+				try: () =>
+					this.prisma.user.create({
+						data: {
+							name
+						}
+					}),
+				catch: error => new DatabaseError({ error })
+			})
+		)
+	}
 }

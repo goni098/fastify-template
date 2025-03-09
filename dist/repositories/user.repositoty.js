@@ -27,6 +27,18 @@ export class UserRepository {
                 })
         }), E.flatMap(E.fromNullable), E.catchTag("NoSuchElementException", ()=>E.fail(new NoneError())));
     }
+    save(name) {
+        return pipe(E.tryPromise({
+            try: ()=>this.prisma.user.create({
+                    data: {
+                        name
+                    }
+                }),
+            catch: (error)=>new DatabaseError({
+                    error
+                })
+        }));
+    }
     constructor(prisma){
         _define_property(this, "prisma", void 0);
         this.prisma = prisma;

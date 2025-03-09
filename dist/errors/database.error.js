@@ -1,7 +1,7 @@
 import { retrieveErrorMessage, toError } from "../utils/error.util.js";
 import { Data, pipe } from "effect";
 export class DatabaseError extends Data.TaggedError("Database") {
-    intoException() {
+    intoResponse() {
         return pipe(this.error, toError, retrieveErrorMessage, (msg)=>({
                 msg,
                 code: 500

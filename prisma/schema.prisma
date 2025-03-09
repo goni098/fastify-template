@@ -2,13 +2,21 @@ generator client {
   provider = "prisma-client-js"
 }
 
+generator zod {
+  provider     = "zod-prisma"
+  output       = "../src/models"
+  useDecimalJs = true
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
 model User {
-    id Int @id @default(autoincrement())
+  id      BigInt  @id @default(autoincrement()) /// @zod.transform(String)
+  name    String  @db.VarChar
+  address String? @db.VarChar /// @zod.transform(val => val ?? undefined).optional()
 
-    @@map("user")
+  @@map("user")
 }

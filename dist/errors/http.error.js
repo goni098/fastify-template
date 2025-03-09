@@ -1,6 +1,6 @@
 import { Data, Effect } from "effect";
 export class HttpError extends Data.TaggedError("Http") {
-    intoException() {
+    intoResponse() {
         return {
             code: this.code,
             msg: this.message

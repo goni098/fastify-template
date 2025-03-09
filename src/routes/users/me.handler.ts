@@ -1,5 +1,7 @@
+import { UserModel } from "@root/models/user.js"
 import { UserRepository } from "@root/repositories/user.repositoty.js"
-import { consumeResult } from "@root/utils/consume-result.util.js"
+import { positiveInt } from "@root/shared/parser.js"
+import { unwrap } from "@root/utils/result.util.js"
 import { pipe } from "effect"
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod"
 import { z } from "zod"
@@ -10,16 +12,19 @@ const handler: FastifyPluginAsyncZod = async self => {
 		{
 			schema: {
 				params: z.object({
-					id: z.string().transform(Number).pipe(z.number().int().min(1))
+					id: positiveInt()
 				}),
-				tags: ["users"]
+				tags: ["users"],
+				response: {
+					200: UserModel
+				}
 			}
 		},
 		async ({ params }) =>
 			pipe(
 				self.resolveRepository(UserRepository),
 				userRepository => userRepository.findById(params.id),
-				consumeResult
+				unwrap
 			)
 	)
 }
