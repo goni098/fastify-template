@@ -14,7 +14,10 @@ import {
 } from "fastify-type-provider-zod"
 import { DateTime } from "luxon"
 import type { RepositoryFactory } from "./types/repsoitory-factory.type.js"
-import type { HttpExceptionResponse } from "./types/result.type.js"
+import type {
+	HttpExceptionResponse,
+	IntoResponse
+} from "./types/result.type.js"
 
 declare module "fastify" {
 	interface FastifyInstance {
@@ -40,21 +43,23 @@ function main() {
 		.setErrorHandler((error, request, reply) => {
 			if (error.statusCode) return reply.send(error)
 
-			console.error({
-				timestamp: DateTime.now().toISO(),
-				endpoint: request.url,
-				method: request.method,
-				message: error.message,
-				originalError: error
-			})
+			if ((error as unknown as IntoResponse).intoResponse) {
+				console.error({
+					timestamp: DateTime.now().toISO(),
+					endpoint: request.url,
+					method: request.method,
+					originalError: error
+				})
 
-			// biome-ignore lint/suspicious/noExplicitAny:
-			if ((error as any).intoException) {
-				// biome-ignore lint/suspicious/noExplicitAny:
-				const response = (error as any).intoException() as HttpExceptionResponse
+				const response = (
+					error as unknown as IntoResponse
+				).intoResponse() as HttpExceptionResponse
+
 				reply.statusCode = response.code
 				return reply.send(response)
 			}
+
+			console.error("untagged error: ", error)
 
 			return reply.internalServerError()
 		})

@@ -9,8 +9,8 @@ export class DatabaseError
 	implements IntoResponse
 {
 	public intoResponse() {
-		return pipe(this.error, toError, retrieveErrorMessage, msg => ({
-			msg,
+		return pipe(this.error, toError, retrieveErrorMessage, message => ({
+			message,
 			code: 500
 		}))
 	}

@@ -14,7 +14,7 @@ export class HttpError
 	public intoResponse(): HttpExceptionResponse {
 		return {
 			code: this.code,
-			msg: this.message
+			message: this.message
 		}
 	}
 

@@ -1,5 +1,5 @@
-import { UserModel } from "@root/models/user.js"
-import { UserRepository } from "@root/repositories/user.repositoty.js"
+import { userSelectSchema } from "@root/database/models/user.model.js"
+import { UserRepository } from "@root/database/repositories/user.repositoty.js"
 import { positiveInt } from "@root/shared/parser.js"
 import { unwrap } from "@root/utils/result.util.js"
 import { pipe } from "effect"
@@ -16,7 +16,11 @@ const handler: FastifyPluginAsyncZod = async self => {
 				}),
 				tags: ["users"],
 				response: {
-					200: UserModel
+					200: userSelectSchema.merge(
+						z.object({
+							id: z.bigint().transform(String)
+						})
+					)
 				}
 			}
 		},

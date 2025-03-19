@@ -1,3 +1,3 @@
-import type { PrismaClient } from "@prisma/client/extension"
+import type { Db } from "@root/database/db.js"
 
-export type RepositoryFactory<R> = new (prisma: PrismaClient) => R
+export type RepositoryFactory<R> = new (db: Db) => R

@@ -8,5 +8,5 @@ export interface IntoResponse {
 
 export interface HttpExceptionResponse {
 	code: number
-	msg: string
+	message: string
 }

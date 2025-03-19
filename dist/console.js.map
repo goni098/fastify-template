@@ -1,1 +1,0 @@
-{"version":3,"sources":["../src/console.ts"],"sourcesContent":["console.log(\"console\")\n"],"names":["console","log"],"mappings":"AAAAA,QAAQC,GAAG,CAAC"}

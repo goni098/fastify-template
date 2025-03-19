@@ -11,7 +11,7 @@ export class NoneError
 	public intoResponse(): HttpExceptionResponse {
 		return {
 			code: 500,
-			msg: "none value"
+			message: "none value"
 		}
 	}
 }
