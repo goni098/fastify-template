@@ -9,13 +9,12 @@ import { type CreateUserInput, type User, user } from "../models/user.model.js"
 export class UserRepository {
 	constructor(private db: Db) {}
 
-	findById(id: bigint | number): Result<User, DatabaseError | NoneError> {
+	findById(id: number): Result<User, DatabaseError | NoneError> {
 		return pipe(
 			E.tryPromise({
 				try: () =>
 					this.db.query.user.findFirst({
-						where: eq(user.id, BigInt(id)),
-						with: { wallets: true }
+						where: eq(user.id, id)
 					}),
 				catch: error => new DatabaseError({ error })
 			}),

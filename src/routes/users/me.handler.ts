@@ -16,17 +16,14 @@ const handler: FastifyPluginAsyncZod = async self => {
 				}),
 				tags: ["users"],
 				response: {
-					200: userSelectSchema.merge(
-						z.object({
-							id: z.bigint().transform(String)
-						})
-					)
+					200: userSelectSchema
 				}
 			}
 		},
 		async ({ params }) =>
 			pipe(
-				self.resolveRepository(UserRepository),
+				UserRepository,
+				self.resolveRepository,
 				userRepository => userRepository.findById(params.id),
 				unwrap
 			)
