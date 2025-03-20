@@ -23,10 +23,13 @@ export class UserRepository {
 		)
 	}
 
-	save(params: CreateUserInput): Result<User, DatabaseError | NoneError> {
+	saveIfNotExist(
+		params: CreateUserInput
+	): Result<User, DatabaseError | NoneError> {
 		return pipe(
 			E.tryPromise({
-				try: () => this.db.insert(user).values(params).returning(),
+				try: () =>
+					this.db.insert(user).values(params).onConflictDoNothing().returning(),
 				catch: error => new DatabaseError({ error })
 			}),
 			E.flatMap(A.get(0)),

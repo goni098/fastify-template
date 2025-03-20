@@ -13,6 +13,9 @@ import {
 	validatorCompiler
 } from "fastify-type-provider-zod"
 import { DateTime } from "luxon"
+import type { Claims } from "./plugins/auth.plugin.js"
+import { ACCESS_TOKEN_SECRET } from "./shared/env.js"
+import type { Web3Client } from "./shared/sui.js"
 import type { RepositoryFactory } from "./types/repsoitory-factory.type.js"
 import type {
 	HttpExceptionResponse,
@@ -22,6 +25,7 @@ import type {
 declare module "fastify" {
 	interface FastifyInstance {
 		resolveRepository: <R>(repo: RepositoryFactory<R>) => R
+		web3: Web3Client
 	}
 }
 
@@ -29,7 +33,9 @@ declare module "@fastify/jwt" {
 	interface FastifyJWT {
 		payload: {
 			id: number
+			address: string
 		}
+		user: Claims
 	}
 }
 
@@ -44,16 +50,18 @@ function main() {
 			if (error.statusCode) return reply.send(error)
 
 			if ((error as unknown as IntoResponse).intoResponse) {
-				console.error({
-					timestamp: DateTime.now().toISO(),
-					endpoint: request.url,
-					method: request.method,
-					originalError: error
-				})
-
 				const response = (
 					error as unknown as IntoResponse
 				).intoResponse() as HttpExceptionResponse
+
+				if (response.code === 500) {
+					console.error({
+						timestamp: DateTime.now().toISO(),
+						endpoint: request.url,
+						method: request.method,
+						originalError: error
+					})
+				}
 
 				reply.statusCode = response.code
 				return reply.send(response)
@@ -66,7 +74,7 @@ function main() {
 		.register(cors)
 		.register(fastifySensible)
 		.register(fastifyJwt, {
-			secret: "ACCESS_TOKEN_SECRET"
+			secret: ACCESS_TOKEN_SECRET
 		})
 		.register(fastifySwagger, {
 			openapi: {
@@ -74,7 +82,15 @@ function main() {
 					title: "FEFT",
 					version: "1.0.0"
 				},
-				servers: []
+				components: {
+					securitySchemes: {
+						bearerAuth: {
+							type: "http",
+							scheme: "bearer",
+							bearerFormat: "JWT"
+						}
+					}
+				}
 			},
 			transform: jsonSchemaTransform
 		})

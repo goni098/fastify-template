@@ -1,30 +1,28 @@
 import { userSelectSchema } from "@root/database/models/user.model.js"
 import { UserRepository } from "@root/database/repositories/user.repositoty.js"
-import { positiveInt } from "@root/shared/parser.js"
+import { authPlg } from "@root/plugins/auth.plugin.js"
+import { SECURITY_TAG } from "@root/shared/const.js"
 import { unwrap } from "@root/utils/result.util.js"
 import { pipe } from "effect"
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod"
-import { z } from "zod"
 
 const handler: FastifyPluginAsyncZod = async self => {
-	self.get(
-		"/:id",
+	self.register(authPlg).get(
+		"/me",
 		{
 			schema: {
-				params: z.object({
-					id: positiveInt()
-				}),
+				security: SECURITY_TAG,
 				tags: ["users"],
 				response: {
 					200: userSelectSchema
 				}
 			}
 		},
-		async ({ params }) =>
+		({ user }) =>
 			pipe(
 				UserRepository,
 				self.resolveRepository,
-				userRepository => userRepository.findById(params.id),
+				userRepository => userRepository.findById(user.id),
 				unwrap
 			)
 	)
