@@ -3,7 +3,7 @@ import { verifyPersonalMessageSignature } from "@mysten/sui/verify"
 import { VerifySigError } from "@root/errors/verify-sig.error.js"
 import type { Result } from "@root/types/result.type.js"
 import { retrieveErrorMessage, toError } from "@root/utils/error.util.js"
-import { Effect, pipe } from "effect"
+import { Effect as E, pipe } from "effect"
 
 type SuiAddress = string
 
@@ -15,7 +15,7 @@ export class Web3Client {
 		signature: string
 	): Result<SuiAddress, VerifySigError> {
 		return pipe(
-			Effect.tryPromise({
+			E.tryPromise({
 				try: () =>
 					verifyPersonalMessageSignature(
 						new TextEncoder().encode(msg),
@@ -26,7 +26,7 @@ export class Web3Client {
 						message: pipe(error, toError, retrieveErrorMessage)
 					})
 			}),
-			Effect.map(pubkey => pubkey.toSuiAddress())
+			E.map(pubkey => pubkey.toSuiAddress())
 		)
 	}
 }

@@ -1,4 +1,4 @@
-import { UserRepository } from "@root/database/repositories/user.repositoty.js"
+import { UserRepository } from "@root/database/repositories/user.repository.js"
 import { JwtSignError } from "@root/errors/jwt-sign.error.js"
 import { unwrapRlt } from "@root/utils/result.util.js"
 import { Effect as E, pipe } from "effect"

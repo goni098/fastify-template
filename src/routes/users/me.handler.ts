@@ -1,5 +1,5 @@
 import { userSelectSchema } from "@root/database/models/user.model.js"
-import { UserRepository } from "@root/database/repositories/user.repositoty.js"
+import { UserRepository } from "@root/database/repositories/user.repository.js"
 import { authPlg } from "@root/plugins/auth.plugin.js"
 import { SECURITY_TAG } from "@root/shared/const.js"
 import { unwrapRlt } from "@root/utils/result.util.js"
