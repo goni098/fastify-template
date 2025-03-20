@@ -2,7 +2,7 @@ import type {
 	HttpExceptionResponse,
 	IntoResponse
 } from "@root/types/result.type.js"
-import { Data, Effect } from "effect"
+import { Data, Effect as E } from "effect"
 
 export class HttpError
 	extends Data.TaggedError("Http")<{
@@ -35,14 +35,14 @@ export class HttpError
 	}
 
 	static FromBadRequest(message = "Bad Request") {
-		return Effect.fail(HttpError.Unauthorized(message))
+		return E.fail(HttpError.Unauthorized(message))
 	}
 
 	static FromUnauthorized(message = "Unauthorized") {
-		return Effect.fail(HttpError.Unauthorized(message))
+		return E.fail(HttpError.Unauthorized(message))
 	}
 
 	static FromInternal(message = "Internal Server Error") {
-		return Effect.fail(HttpError.Internal(message))
+		return E.fail(HttpError.Internal(message))
 	}
 }

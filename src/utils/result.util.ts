@@ -1,8 +1,8 @@
 import type { Result } from "@root/types/result.type.js"
-import { Effect, Either, identity, pipe } from "effect"
+import { Effect as E, Either, identity, pipe } from "effect"
 
-export const unwrap = <A, E>(result: Result<E, A>) =>
-	pipe(result, Effect.either, Effect.runPromise).then(
+export const unwrapRlt = <A, E>(result: Result<E, A>) =>
+	pipe(result, E.either, E.runPromise).then(
 		Either.match({
 			onLeft: error => {
 				throw error

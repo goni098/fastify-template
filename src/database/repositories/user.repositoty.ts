@@ -23,9 +23,7 @@ export class UserRepository {
 		)
 	}
 
-	saveIfNotExist(
-		params: CreateUserInput
-	): Result<User, DatabaseError | NoneError> {
+	upsert(params: CreateUserInput): Result<User, DatabaseError | NoneError> {
 		return pipe(
 			E.tryPromise({
 				try: () =>
