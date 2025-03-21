@@ -6,7 +6,7 @@ import { wallet } from "./wallet.model.js"
 
 export const user = pgTable("user", {
 	id: bigserial({ mode: "number" }).primaryKey().notNull(),
-	address: varchar().notNull()
+	address: varchar().notNull().unique()
 })
 
 export const userRelation = relations(user, ({ many }) => ({

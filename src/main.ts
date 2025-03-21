@@ -6,6 +6,7 @@ import fastifyJwt from "@fastify/jwt"
 import fastifySensible from "@fastify/sensible"
 import fastifySwagger from "@fastify/swagger"
 import fastifySwaggerUi from "@fastify/swagger-ui"
+import { isNoSuchElementException } from "effect/Cause"
 import fastify from "fastify"
 import {
 	jsonSchemaTransform,
@@ -17,10 +18,7 @@ import type { Claims } from "./plugins/auth.plugin.js"
 import { ACCESS_TOKEN_SECRET } from "./shared/env.js"
 import type { Web3Client } from "./shared/sui.js"
 import type { RepositoryFactory } from "./types/repsoitory-factory.type.js"
-import type {
-	HttpExceptionResponse,
-	IntoResponse
-} from "./types/result.type.js"
+import { canIntoResponse } from "./utils/error.util.js"
 
 declare module "fastify" {
 	interface FastifyInstance {
@@ -49,10 +47,12 @@ function main() {
 		.setErrorHandler((error, request, reply) => {
 			if (error.statusCode) return reply.send(error)
 
-			if ((error as unknown as IntoResponse).intoResponse) {
-				const response = (
-					error as unknown as IntoResponse
-				).intoResponse() as HttpExceptionResponse
+			if (isNoSuchElementException(error))
+				return reply.internalServerError(error._tag)
+
+			if (canIntoResponse(error)) {
+				const response = error.intoResponse()
+				reply.statusCode = response.code
 
 				if (response.code === 500) {
 					console.error({
@@ -63,7 +63,6 @@ function main() {
 					})
 				}
 
-				reply.statusCode = response.code
 				return reply.send(response)
 			}
 
@@ -98,8 +97,7 @@ function main() {
 			routePrefix: "/docs"
 		})
 		.register(autoLoad, {
-			dir: join(__dirname, "plugins"),
-			matchFilter: path => path.startsWith("/_"),
+			dir: join(__dirname, "plugins", "autoload"),
 			encapsulate: false
 		})
 		.register(autoLoad, {
