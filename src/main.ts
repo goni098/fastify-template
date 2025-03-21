@@ -3,6 +3,7 @@ import { fileURLToPath } from "node:url"
 import autoLoad from "@fastify/autoload"
 import cors from "@fastify/cors"
 import fastifyJwt from "@fastify/jwt"
+import fastifyRedis from "@fastify/redis"
 import fastifySensible from "@fastify/sensible"
 import fastifySwagger from "@fastify/swagger"
 import fastifySwaggerUi from "@fastify/swagger-ui"
@@ -70,6 +71,7 @@ function main() {
 
 			return reply.internalServerError()
 		})
+		.register(fastifyRedis)
 		.register(cors)
 		.register(fastifySensible)
 		.register(fastifyJwt, {

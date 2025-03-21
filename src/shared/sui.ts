@@ -1,6 +1,11 @@
-import type { SuiClient } from "@mysten/sui/client"
+import type {
+	PaginatedEvents,
+	QueryEventsParams,
+	SuiClient
+} from "@mysten/sui/client"
 import { verifyPersonalMessageSignature } from "@mysten/sui/verify"
-import { VerifySigError } from "@root/errors/verify-sig.error.js"
+import { SuiClientException } from "@root/exceptions/sui-client.ex.js"
+import { VerifySigException } from "@root/exceptions/verify-sig.ex.js"
 import type { Result } from "@root/types/result.type.js"
 import { retrieveErrorMessage, toError } from "@root/utils/error.util.js"
 import { Effect as E, pipe } from "effect"
@@ -13,7 +18,7 @@ export class Web3Client {
 	verifyPersonalMsg(
 		msg: string,
 		signature: string
-	): Result<SuiAddress, VerifySigError> {
+	): Result<SuiAddress, VerifySigException> {
 		return pipe(
 			E.tryPromise({
 				try: () =>
@@ -22,11 +27,22 @@ export class Web3Client {
 						signature
 					),
 				catch: error =>
-					new VerifySigError({
+					new VerifySigException({
 						message: pipe(error, toError, retrieveErrorMessage)
 					})
 			}),
 			E.map(pubkey => pubkey.toSuiAddress())
+		)
+	}
+
+	queryEvents(
+		params: QueryEventsParams
+	): Result<PaginatedEvents, SuiClientException> {
+		return pipe(
+			E.tryPromise({
+				try: () => this.client.queryEvents(params),
+				catch: error => new SuiClientException({ error })
+			})
 		)
 	}
 }

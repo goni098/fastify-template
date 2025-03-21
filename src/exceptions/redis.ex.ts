@@ -2,8 +2,8 @@ import type { IntoResponse } from "@root/types/result.type.js"
 import { retrieveErrorMessage, toError } from "@root/utils/error.util.js"
 import { Data, pipe } from "effect"
 
-export class JwtSignError
-	extends Data.TaggedError("JwtSign")<{
+export class RedisException
+	extends Data.TaggedError("RedisException")<{
 		error: unknown
 	}>
 	implements IntoResponse

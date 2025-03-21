@@ -2,7 +2,7 @@ import { userSelectSchema } from "@root/database/models/user.model.js"
 import { UserRepository } from "@root/database/repositories/user.repository.js"
 import { authPlg } from "@root/plugins/auth.plugin.js"
 import { SECURITY_TAG } from "@root/shared/const.js"
-import { unwrapRlt } from "@root/utils/result.util.js"
+import { unwrapResult } from "@root/utils/result.util.js"
 import { pipe } from "effect"
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod"
 
@@ -23,7 +23,7 @@ const handler: FastifyPluginAsyncZod = async self => {
 				UserRepository,
 				self.resolveRepository,
 				userRepository => userRepository.findById(user.id),
-				unwrapRlt
+				unwrapResult
 			)
 	)
 }

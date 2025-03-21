@@ -2,8 +2,8 @@ import type { IntoResponse } from "@root/types/result.type.js"
 import { retrieveErrorMessage, toError } from "@root/utils/error.util.js"
 import { Data, pipe } from "effect"
 
-export class DatabaseError
-	extends Data.TaggedError("Database")<{
+export class JwtSignException
+	extends Data.TaggedError("JwtSignException")<{
 		error: unknown
 	}>
 	implements IntoResponse

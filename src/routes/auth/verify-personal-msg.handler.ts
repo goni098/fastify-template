@@ -1,6 +1,9 @@
 import { UserRepository } from "@root/database/repositories/user.repository.js"
-import { JwtSignError } from "@root/errors/jwt-sign.error.js"
-import { unwrapRlt } from "@root/utils/result.util.js"
+import { HttpException } from "@root/exceptions/http.ex.js"
+import { JwtSignException } from "@root/exceptions/jwt-sign.ex.js"
+import { RedisException } from "@root/exceptions/redis.ex.js"
+import { userSignMsgKey } from "@root/utils/redis.util.js"
+import { unwrapResult } from "@root/utils/result.util.js"
 import { Effect as E, pipe } from "effect"
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod"
 import { z } from "zod"
@@ -29,17 +32,33 @@ const handler: FastifyPluginAsyncZod = async self => {
 				E.bind("address", () =>
 					self.web3.verifyPersonalMsg(body.message, body.signature)
 				),
+				E.tap(({ address }) =>
+					E.tryPromise({
+						try: () => self.redis.get(userSignMsgKey(address)),
+						catch: error => new RedisException({ error })
+					}).pipe(
+						E.flatMap(E.fromNullable),
+						E.tap(message =>
+							HttpException.Unauthorized("unmatch message").pipe(
+								E.when(() => body.message !== message)
+							)
+						),
+						E.catchTag("NoSuchElementException", () =>
+							HttpException.Unauthorized("message was not created")
+						)
+					)
+				),
 				E.flatMap(({ address, userRepo }) => userRepo.upsert({ address })),
 				E.flatMap(user =>
 					E.tryPromise({
 						try: () => reply.jwtSign({ id: user.id, address: user.address }),
-						catch: error => new JwtSignError({ error })
+						catch: error => new JwtSignException({ error })
 					})
 				),
 				E.map(accessToken => ({
 					accessToken
 				})),
-				unwrapRlt
+				unwrapResult
 			)
 	)
 }

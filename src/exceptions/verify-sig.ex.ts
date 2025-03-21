@@ -4,8 +4,8 @@ import type {
 } from "@root/types/result.type.js"
 import { Data } from "effect"
 
-export class VerifySigError
-	extends Data.TaggedError("VerifySig")<{ message: string }>
+export class VerifySigException
+	extends Data.TaggedError("VerifySigException")<{ message: string }>
 	implements IntoResponse
 {
 	public intoResponse(): HttpExceptionResponse {

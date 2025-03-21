@@ -1,3 +1,4 @@
+import { isValidSuiAddress } from "@mysten/sui/utils"
 import { z } from "zod"
 
 export const positiveInt = () =>
@@ -14,3 +15,6 @@ export const ignoreEmptyStr = (trim = true) =>
 		const str = trim ? val.trim() : val
 		return str.length > 0 ? str : undefined
 	})
+
+export const suiAddress = () =>
+	z.string().refine(isValidSuiAddress, "invalid sui address")

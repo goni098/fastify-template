@@ -2,8 +2,8 @@ import type { IntoResponse } from "@root/types/result.type.js"
 import { retrieveErrorMessage, toError } from "@root/utils/error.util.js"
 import { Data, pipe } from "effect"
 
-export class SuiClientError
-	extends Data.TaggedError("SuiClient")<{
+export class DatabaseException
+	extends Data.TaggedError("DatabaseException")<{
 		error: unknown
 	}>
 	implements IntoResponse
