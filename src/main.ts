@@ -7,8 +7,13 @@ import fastifyRedis from "@fastify/redis"
 import fastifySensible from "@fastify/sensible"
 import fastifySwagger from "@fastify/swagger"
 import fastifySwaggerUi from "@fastify/swagger-ui"
+import { Option as O, pipe } from "effect"
 import { isNoSuchElementException } from "effect/Cause"
-import fastify from "fastify"
+import fastify, {
+	type FastifyError,
+	type FastifyReply,
+	type FastifyRequest
+} from "fastify"
 import {
 	jsonSchemaTransform,
 	serializerCompiler,
@@ -38,82 +43,91 @@ declare module "@fastify/jwt" {
 	}
 }
 
-function main() {
-	const __filename = fileURLToPath(import.meta.url)
-	const __dirname = dirname(__filename)
+const errorHandler = (
+	error: FastifyError,
+	request: FastifyRequest,
+	reply: FastifyReply
+) => {
+	if (error.statusCode) return reply.send(error)
 
-	fastify()
-		.setValidatorCompiler(validatorCompiler)
-		.setSerializerCompiler(serializerCompiler)
-		.setErrorHandler((error, request, reply) => {
-			if (error.statusCode) return reply.send(error)
+	if (isNoSuchElementException(error))
+		return reply.internalServerError(error._tag)
 
-			if (isNoSuchElementException(error))
-				return reply.internalServerError(error._tag)
+	if (canIntoResponse(error)) {
+		const response = error.intoResponse()
+		reply.statusCode = response.code
 
-			if (canIntoResponse(error)) {
-				const response = error.intoResponse()
-				reply.statusCode = response.code
+		if (response.code === 500) {
+			console.error({
+				timestamp: DateTime.now().toISO(),
+				endpoint: request.url,
+				method: request.method,
+				originalError: error
+			})
+		}
 
-				if (response.code === 500) {
-					console.error({
-						timestamp: DateTime.now().toISO(),
-						endpoint: request.url,
-						method: request.method,
-						originalError: error
-					})
-				}
+		return reply.send(response)
+	}
 
-				return reply.send(response)
-			}
+	console.error("untagged error: ", error)
 
-			console.error("untagged error: ", error)
+	return reply.internalServerError()
+}
 
-			return reply.internalServerError()
-		})
-		.register(fastifyRedis)
-		.register(cors)
-		.register(fastifySensible)
-		.register(fastifyJwt, {
-			secret: ACCESS_TOKEN_SECRET
-		})
-		.register(fastifySwagger, {
-			openapi: {
-				info: {
-					title: "FEFT",
-					version: "1.0.0"
-				},
-				components: {
-					securitySchemes: {
-						bearerAuth: {
-							type: "http",
-							scheme: "bearer",
-							bearerFormat: "JWT"
+const server = () =>
+	pipe(import.meta.url, fileURLToPath, dirname, __dirname =>
+		fastify()
+			.setValidatorCompiler(validatorCompiler)
+			.setSerializerCompiler(serializerCompiler)
+			.setErrorHandler(errorHandler)
+			.register(fastifyRedis)
+			.register(cors)
+			.register(fastifySensible)
+			.register(fastifyJwt, {
+				secret: ACCESS_TOKEN_SECRET
+			})
+			.register(fastifySwagger, {
+				openapi: {
+					info: { title: "FEFT", version: "1.0.0" },
+					components: {
+						securitySchemes: {
+							bearerAuth: {
+								type: "http",
+								scheme: "bearer",
+								bearerFormat: "JWT"
+							}
 						}
 					}
+				},
+				transform: jsonSchemaTransform
+			})
+			.register(fastifySwaggerUi, {
+				routePrefix: "/docs"
+			})
+			.register(autoLoad, {
+				dir: join(__dirname, "plugins", "autoload"),
+				encapsulate: false
+			})
+			.register(autoLoad, {
+				dir: join(__dirname, "routes"),
+				matchFilter: path => path.endsWith("handler.js")
+			})
+	)
+
+function main(): void {
+	server().listen({ port: 9098 }, (err, address) =>
+		pipe(
+			err,
+			O.fromNullable,
+			O.match({
+				onNone: () => console.log(`🦀 server is listening at ${address}`),
+				onSome: error => {
+					console.error(error)
+					process.exit(1)
 				}
-			},
-			transform: jsonSchemaTransform
-		})
-		.register(fastifySwaggerUi, {
-			routePrefix: "/docs"
-		})
-		.register(autoLoad, {
-			dir: join(__dirname, "plugins", "autoload"),
-			encapsulate: false
-		})
-		.register(autoLoad, {
-			dir: join(__dirname, "routes"),
-			matchFilter: path => path.endsWith("handler.js")
-		})
-		.listen({ port: 9098 }, (err, address) => {
-			if (err) {
-				console.error(err)
-				process.exit(1)
-			} else {
-				console.log(`🦀 server is listening at ${address}`)
-			}
-		})
+			})
+		)
+	)
 }
 
 main()

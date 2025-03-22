@@ -8,6 +8,7 @@ import {
 	pipe
 } from "effect"
 import { Boolean as B, Chunk as C } from "effect"
+import { constTrue, constant } from "effect/Function"
 import { establishConnection } from "./database/db.js"
 import { EventRepository } from "./database/repositories/event.repository.js"
 import {
@@ -18,46 +19,14 @@ import type { DatabaseException } from "./exceptions/database.ex.js"
 import type { SuiClientException } from "./exceptions/sui-client.ex.js"
 import { Web3Client } from "./shared/sui.js"
 import type { Result } from "./types/result.type.js"
-import { constant, constTrue } from "effect/Function"
 
-main().pipe(E.runPromise)
-
-function main(): Result<void, DatabaseException | SuiClientException> {
-	return pipe(
-		new SuiClient({
-			url: getFullnodeUrl("testnet")
-		}),
-		suiClient => new Web3Client(suiClient),
-		E.succeed,
-		E.bindTo("client"),
-		E.let("db", () => establishConnection()),
-		E.let("eventRepository", ({ db }) => new EventRepository(db)),
-		E.let("settingRepository", ({ db }) => new SettingRepository(db)),
-		E.bind("cursor", ({ settingRepository, client }) =>
-			resolveCursor(client, settingRepository)
-		),
-		E.flatMap(({ client, eventRepository, settingRepository, cursor }) =>
-			E.iterate(O.some(cursor), {
-				body: cursor =>
-					scan(client, cursor, eventRepository, settingRepository),
-				while: constTrue
-			})
-		),
-		E.tapError(flow(console.error, constant, E.sync)),
-		E.retry({
-			while: constTrue,
-			schedule: Schedule.fixed(Duration.seconds(3))
-		})
-	)
-}
-
-function scan(
+const scan = (
 	client: Web3Client,
 	cursor: O.Option<EventCursor>,
 	eventRepository: EventRepository,
 	settingRepository: SettingRepository
-): Result<O.Option<EventCursor>, DatabaseException | SuiClientException> {
-	return pipe(
+): Result<O.Option<EventCursor>, DatabaseException | SuiClientException> =>
+	pipe(
 		cursor,
 		O.match({
 			onNone: flow(
@@ -70,15 +39,14 @@ function scan(
 				handleEvents(client, cursor, eventRepository, settingRepository)
 		})
 	)
-}
 
-function handleEvents(
+const handleEvents = (
 	client: Web3Client,
 	cursor: EventCursor,
 	eventRepository: EventRepository,
 	settingRepository: SettingRepository
-): Result<O.Option<EventCursor>, DatabaseException | SuiClientException> {
-	return pipe(
+): Result<O.Option<EventCursor>, DatabaseException | SuiClientException> =>
+	pipe(
 		client.queryEvents({
 			query: {
 				MoveEventModule: {
@@ -124,13 +92,12 @@ function handleEvents(
 			)
 		)
 	)
-}
 
-function resolveCursor(
+const resolveCursor = (
 	client: Web3Client,
 	settingRepository: SettingRepository
-): Result<EventCursor, DatabaseException | SuiClientException> {
-	return settingRepository.getLastestCursor().pipe(
+): Result<EventCursor, DatabaseException | SuiClientException> =>
+	settingRepository.getLastestCursor().pipe(
 		E.flatten,
 		E.catchTag("NoSuchElementException", () => client.getFirstEventId()),
 		E.tap(cursor =>
@@ -140,4 +107,34 @@ function resolveCursor(
 			settingRepository.set("lastest_event_tx_didest", cursor.txDigest)
 		)
 	)
+
+function main(): Result<void, DatabaseException | SuiClientException> {
+	return pipe(
+		new SuiClient({
+			url: getFullnodeUrl("testnet")
+		}),
+		suiClient => new Web3Client(suiClient),
+		E.succeed,
+		E.bindTo("client"),
+		E.let("db", () => establishConnection()),
+		E.let("eventRepository", ({ db }) => new EventRepository(db)),
+		E.let("settingRepository", ({ db }) => new SettingRepository(db)),
+		E.bind("cursor", ({ settingRepository, client }) =>
+			resolveCursor(client, settingRepository)
+		),
+		E.flatMap(({ client, eventRepository, settingRepository, cursor }) =>
+			E.iterate(O.some(cursor), {
+				body: cursor =>
+					scan(client, cursor, eventRepository, settingRepository),
+				while: constTrue
+			})
+		),
+		E.tapError(flow(console.error, constant, E.sync)),
+		E.retry({
+			while: constTrue,
+			schedule: Schedule.fixed(Duration.seconds(3))
+		})
+	)
 }
+
+main().pipe(E.runPromise)

@@ -16,7 +16,7 @@ type SuiAddress = string
 export class Web3Client {
 	static VENDING_MACHINE_MODULE = "vending_machine"
 	static PACKAGE_ID =
-		"0x0fe25a24dd4a3bbafb8621cd03fee7b1a386189e74c297468c12bbd42c4af604"
+		"0x0fe25a24dd4a3bbafb8621cd03fee7b1a386189e74c297468c12bbd42c4af64"
 
 	constructor(private client: SuiClient) {}
 
