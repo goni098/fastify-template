@@ -4,7 +4,7 @@ import type { Result } from "@root/types/result.type.js"
 import { eq } from "drizzle-orm"
 import { Effect as E, Option as O, flow, pipe } from "effect"
 import type { Db } from "../db.js"
-import { setting } from "../schemas/setting.schema.js"
+import { settingTable } from "../schemas/setting.schema.js"
 
 export type Setting = "lastest_event_seq" | "lastest_event_tx_didest"
 
@@ -17,7 +17,7 @@ export class SettingRepository {
 		return E.tryPromise({
 			try: () =>
 				this.db.query.setting.findFirst({
-					where: eq(setting.key, key),
+					where: eq(settingTable.key, key),
 					columns: { value: true }
 				}),
 			catch: error => new DatabaseException({ error })
@@ -34,12 +34,15 @@ export class SettingRepository {
 	set(key: Setting, value: string): Result<string, DatabaseException> {
 		return E.tryPromise({
 			try: () =>
-				this.db.update(setting).set({ value }).where(eq(setting.key, key)),
+				this.db
+					.update(settingTable)
+					.set({ value })
+					.where(eq(settingTable.key, key)),
 			catch: error => new DatabaseException({ error })
 		}).pipe(
 			E.flatMap(res =>
 				E.tryPromise({
-					try: () => this.db.insert(setting).values({ key, value }),
+					try: () => this.db.insert(settingTable).values({ key, value }),
 					catch: error => new DatabaseException({ error })
 				}).pipe(E.when(() => res.rowCount === 0))
 			),
@@ -55,13 +58,13 @@ export class SettingRepository {
 			E.tryPromise({
 				try: () =>
 					this.db.transaction(async tx => {
-						tx.update(setting)
+						tx.update(settingTable)
 							.set({ key: "lastest_event_seq", value: eventSeq })
-							.where(eq(setting.key, "lastest_event_seq"))
+							.where(eq(settingTable.key, "lastest_event_seq"))
 
-						tx.update(setting)
+						tx.update(settingTable)
 							.set({ key: "lastest_event_tx_didest", value: txDigest })
-							.where(eq(setting.key, "lastest_event_tx_didest"))
+							.where(eq(settingTable.key, "lastest_event_tx_didest"))
 					}),
 				catch: error => new DatabaseException({ error })
 			}),

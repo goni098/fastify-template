@@ -1,5 +1,12 @@
 import { SuiClient, getFullnodeUrl } from "@mysten/sui/client"
-import { Duration, Effect as E, Option as O, flow, pipe } from "effect"
+import {
+	Duration,
+	Effect as E,
+	Option as O,
+	Schedule,
+	flow,
+	pipe
+} from "effect"
 import { Boolean as B, Chunk as C } from "effect"
 import { establishConnection } from "./database/db.js"
 import { EventRepository } from "./database/repositories/event.repository.js"
@@ -38,7 +45,8 @@ function main(): Result<void, DatabaseException | SuiClientException> {
 		),
 		E.tapError(flow(console.error, constant, E.sync)),
 		E.retry({
-			while: constTrue
+			while: constTrue,
+			schedule: Schedule.fixed(Duration.seconds(3))
 		})
 	)
 }
