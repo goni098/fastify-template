@@ -11,6 +11,7 @@ import type { DatabaseException } from "./exceptions/database.ex.js"
 import type { SuiClientException } from "./exceptions/sui-client.ex.js"
 import { Web3Client } from "./shared/sui.js"
 import type { Result } from "./types/result.type.js"
+import { constant, constTrue } from "effect/Function"
 
 main().pipe(E.runPromise)
 
@@ -32,9 +33,13 @@ function main(): Result<void, DatabaseException | SuiClientException> {
 			E.iterate(O.some(cursor), {
 				body: cursor =>
 					scan(client, cursor, eventRepository, settingRepository),
-				while: () => true
+				while: constTrue
 			})
-		)
+		),
+		E.tapError(flow(console.error, constant, E.sync)),
+		E.retry({
+			while: constTrue
+		})
 	)
 }
 

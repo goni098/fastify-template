@@ -2,14 +2,14 @@ import { bigserial, pgTable, varchar } from "drizzle-orm/pg-core"
 import { createInsertSchema, createSelectSchema } from "drizzle-zod"
 import type { z } from "zod"
 
-export const user = pgTable("user", {
+export const userTable = pgTable("user", {
 	id: bigserial({ mode: "number" }).primaryKey().notNull(),
 	address: varchar().notNull().unique()
 })
 
-export const userSelectSchema = createSelectSchema(user)
+export const userSelectSchema = createSelectSchema(userTable)
 
-export const userInsertSchema = createInsertSchema(user)
+export const userInsertSchema = createInsertSchema(userTable)
 
 export type User = z.infer<typeof userSelectSchema>
 

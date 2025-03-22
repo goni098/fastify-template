@@ -7,7 +7,7 @@ import type { Db } from "../db.js"
 import {
 	type CreateUserInput,
 	type User,
-	user
+	userTable
 } from "../schemas/user.schema.js"
 
 export class UserRepository {
@@ -19,7 +19,7 @@ export class UserRepository {
 		return E.tryPromise({
 			try: () =>
 				this.db.query.user.findFirst({
-					where: eq(user.id, id)
+					where: eq(userTable.id, id)
 				}),
 			catch: error => new DatabaseException({ error })
 		}).pipe(E.flatMap(E.fromNullable))
@@ -37,7 +37,9 @@ export class UserRepository {
 		return pipe(
 			E.tryPromise({
 				try: () =>
-					this.db.query.user.findFirst({ where: eq(user.address, address) }),
+					this.db.query.user.findFirst({
+						where: eq(userTable.address, address)
+					}),
 				catch: error => new DatabaseException({ error })
 			}),
 			E.flatMap(E.fromNullable)
@@ -48,7 +50,10 @@ export class UserRepository {
 		return pipe(
 			E.tryPromise({
 				try: () =>
-					this.db.insert(user).values({ address: params.address }).returning(),
+					this.db
+						.insert(userTable)
+						.values({ address: params.address })
+						.returning(),
 				catch: error => new DatabaseException({ error })
 			}),
 			E.flatMap(A.get(0)),
