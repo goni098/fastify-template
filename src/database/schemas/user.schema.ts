@@ -1,17 +1,11 @@
-import { relations } from "drizzle-orm"
 import { bigserial, pgTable, varchar } from "drizzle-orm/pg-core"
 import { createInsertSchema, createSelectSchema } from "drizzle-zod"
 import type { z } from "zod"
-import { wallet } from "./wallet.model.js"
 
 export const user = pgTable("user", {
 	id: bigserial({ mode: "number" }).primaryKey().notNull(),
 	address: varchar().notNull().unique()
 })
-
-export const userRelation = relations(user, ({ many }) => ({
-	wallets: many(wallet)
-}))
 
 export const userSelectSchema = createSelectSchema(user)
 

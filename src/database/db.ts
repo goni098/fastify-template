@@ -1,9 +1,8 @@
 import { DATABASE_URL } from "@root/shared/env.js"
 import { drizzle } from "drizzle-orm/node-postgres"
-import { event } from "./models/event.model.js"
-import { setting } from "./models/setting.model.js"
-import { user, userRelation } from "./models/user.model.js"
-import { wallet, walletRelation } from "./models/wallet.model.js"
+import { event } from "./schemas/event.schema.js"
+import { setting } from "./schemas/setting.schema.js"
+import { user } from "./schemas/user.schema.js"
 
 export type Db = ReturnType<typeof establishConnection>
 
@@ -11,11 +10,8 @@ export const establishConnection = (logging = false) =>
 	drizzle({
 		schema: {
 			user,
-			wallet,
 			event,
-			setting,
-			userRelation,
-			walletRelation
+			setting
 		},
 		connection: {
 			connectionString: DATABASE_URL

@@ -4,7 +4,7 @@ import type { Result } from "@root/types/result.type.js"
 import { eq } from "drizzle-orm"
 import { Effect as E, Option as O, flow, pipe } from "effect"
 import type { Db } from "../db.js"
-import { setting } from "../models/setting.model.js"
+import { setting } from "../schemas/setting.schema.js"
 
 export type Setting = "lastest_event_seq" | "lastest_event_tx_didest"
 
@@ -55,13 +55,11 @@ export class SettingRepository {
 			E.tryPromise({
 				try: () =>
 					this.db.transaction(async tx => {
-						await tx
-							.update(setting)
+						tx.update(setting)
 							.set({ key: "lastest_event_seq", value: eventSeq })
 							.where(eq(setting.key, "lastest_event_seq"))
 
-						await tx
-							.update(setting)
+						tx.update(setting)
 							.set({ key: "lastest_event_tx_didest", value: txDigest })
 							.where(eq(setting.key, "lastest_event_tx_didest"))
 					}),

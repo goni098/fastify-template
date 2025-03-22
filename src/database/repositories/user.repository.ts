@@ -4,7 +4,11 @@ import { eq } from "drizzle-orm"
 import { Array as A, Effect as E, pipe } from "effect"
 import type { NoSuchElementException } from "effect/Cause"
 import type { Db } from "../db.js"
-import { type CreateUserInput, type User, user } from "../models/user.model.js"
+import {
+	type CreateUserInput,
+	type User,
+	user
+} from "../schemas/user.schema.js"
 
 export class UserRepository {
 	constructor(private db: Db) {}

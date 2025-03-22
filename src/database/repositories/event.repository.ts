@@ -2,9 +2,7 @@ import { DatabaseException } from "@root/exceptions/database.ex.js"
 import type { Result } from "@root/types/result.type.js"
 import { Effect as E } from "effect"
 import type { Db } from "../db.js"
-import { type CreateEventInput, event } from "../models/event.model.js"
-
-export type Setting = "lastest_event_cursor"
+import { type CreateEventInput, event } from "../schemas/event.schema.js"
 
 export class EventRepository {
 	constructor(private db: Db) {}

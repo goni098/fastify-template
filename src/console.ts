@@ -1,7 +1,6 @@
 import { SuiClient, getFullnodeUrl } from "@mysten/sui/client"
-import { Duration, Effect as E, Effect, Option as O, flow, pipe } from "effect"
-import { Array as A, Boolean as B, Chunk as C } from "effect"
-import type { NoSuchElementException } from "effect/Cause"
+import { Duration, Effect as E, Option as O, flow, pipe } from "effect"
+import { Boolean as B, Chunk as C } from "effect"
 import { establishConnection } from "./database/db.js"
 import { EventRepository } from "./database/repositories/event.repository.js"
 import {
@@ -13,12 +12,9 @@ import type { SuiClientException } from "./exceptions/sui-client.ex.js"
 import { Web3Client } from "./shared/sui.js"
 import type { Result } from "./types/result.type.js"
 
-const MODULE = "vending_machine"
+main().pipe(E.runPromise)
 
-const PACKAGE =
-	"0x0fe25a24dd4a3bbafb8621cd03fee7b1a386189e74c297468c12bbd42c4af604"
-
-function main() {
+function main(): Result<void, DatabaseException | SuiClientException> {
 	return pipe(
 		new SuiClient({
 			url: getFullnodeUrl("testnet")
@@ -30,16 +26,7 @@ function main() {
 		E.let("eventRepository", ({ db }) => new EventRepository(db)),
 		E.let("settingRepository", ({ db }) => new SettingRepository(db)),
 		E.bind("cursor", ({ settingRepository, client }) =>
-			settingRepository.getLastestCursor().pipe(
-				E.flatten,
-				E.catchTag("NoSuchElementException", () => getDefaultCursor(client)),
-				E.tap(cursor =>
-					settingRepository.set("lastest_event_seq", cursor.eventSeq)
-				),
-				E.tap(cursor =>
-					settingRepository.set("lastest_event_tx_didest", cursor.txDigest)
-				)
-			)
+			resolveCursor(client, settingRepository)
 		),
 		E.flatMap(({ client, eventRepository, settingRepository, cursor }) =>
 			E.iterate(O.some(cursor), {
@@ -47,12 +34,9 @@ function main() {
 					scan(client, cursor, eventRepository, settingRepository),
 				while: () => true
 			})
-		),
-		Effect.runPromise
+		)
 	)
 }
-
-main()
 
 function scan(
 	client: Web3Client,
@@ -80,11 +64,14 @@ function handleEvents(
 	cursor: EventCursor,
 	eventRepository: EventRepository,
 	settingRepository: SettingRepository
-) {
+): Result<O.Option<EventCursor>, DatabaseException | SuiClientException> {
 	return pipe(
 		client.queryEvents({
 			query: {
-				MoveEventModule: { module: MODULE, package: PACKAGE }
+				MoveEventModule: {
+					module: Web3Client.VENDING_MACHINE_MODULE,
+					package: Web3Client.PACKAGE_ID
+				}
 			},
 			order: "ascending",
 			cursor,
@@ -126,18 +113,18 @@ function handleEvents(
 	)
 }
 
-function getDefaultCursor(
-	client: Web3Client
-): Result<EventCursor, SuiClientException | NoSuchElementException> {
-	return pipe(
-		client.queryEvents({
-			limit: 1,
-			order: "ascending",
-			query: {
-				MoveEventModule: { module: MODULE, package: PACKAGE }
-			}
-		}),
-		E.flatMap(flow(res => res.data, A.fromIterable, A.get(0))),
-		E.map(({ id }) => id)
+function resolveCursor(
+	client: Web3Client,
+	settingRepository: SettingRepository
+): Result<EventCursor, DatabaseException | SuiClientException> {
+	return settingRepository.getLastestCursor().pipe(
+		E.flatten,
+		E.catchTag("NoSuchElementException", () => client.getFirstEventId()),
+		E.tap(cursor =>
+			settingRepository.set("lastest_event_seq", cursor.eventSeq)
+		),
+		E.tap(cursor =>
+			settingRepository.set("lastest_event_tx_didest", cursor.txDigest)
+		)
 	)
 }
