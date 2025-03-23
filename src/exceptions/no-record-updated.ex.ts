@@ -11,7 +11,8 @@ export class NoRecordUpdatedException
 	public intoResponse(): HttpExceptionResponse {
 		return {
 			code: 500,
-			message: "No record has updated"
+			message: "No record has updated",
+			tag: this._tag
 		}
 	}
 }

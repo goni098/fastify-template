@@ -11,7 +11,8 @@ export class RedisException
 	public intoResponse() {
 		return pipe(this.error, toError, retrieveErrorMessage, message => ({
 			message,
-			code: 500
+			code: 500,
+			tag: this._tag
 		}))
 	}
 }

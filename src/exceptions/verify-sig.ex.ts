@@ -11,7 +11,8 @@ export class VerifySigException
 	public intoResponse(): HttpExceptionResponse {
 		return {
 			code: 401,
-			message: this.message
+			message: this.message,
+			tag: this._tag
 		}
 	}
 }

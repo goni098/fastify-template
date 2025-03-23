@@ -18,3 +18,9 @@ export const ignoreEmptyStr = (trim = true) =>
 
 export const suiAddress = () =>
 	z.string().refine(isValidSuiAddress, "invalid sui address")
+
+export const optionalStr = () =>
+	z
+		.string()
+		.transform(s => (s.trim() === "" ? undefined : s.trim()))
+		.optional()

@@ -1,6 +1,8 @@
 import {
 	type EventId,
+	type GetOwnedObjectsParams,
 	type PaginatedEvents,
+	type PaginatedObjectsResponse,
 	type QueryEventsParams,
 	SuiClient,
 	getFullnodeUrl
@@ -52,6 +54,15 @@ export class Web3Client {
 	): Result<PaginatedEvents, SuiClientException> {
 		return E.tryPromise({
 			try: () => this.client.queryEvents(params),
+			catch: error => new SuiClientException({ error })
+		})
+	}
+
+	getOwnedObject(
+		params: GetOwnedObjectsParams
+	): Result<PaginatedObjectsResponse, SuiClientException> {
+		return E.tryPromise({
+			try: () => this.client.getOwnedObjects(params),
 			catch: error => new SuiClientException({ error })
 		})
 	}
