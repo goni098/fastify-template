@@ -1,8 +1,17 @@
 import type { EventId } from "@mysten/sui/client"
 import { DatabaseException } from "@root/exceptions/database.ex.js"
+import { NoRecordUpdatedException } from "@root/exceptions/no-record-updated.ex.js"
 import type { Result } from "@root/types/result.type.js"
 import { eq } from "drizzle-orm"
-import { Effect as E, Option as O, flow, pipe } from "effect"
+import {
+	Array as A,
+	Boolean as B,
+	Effect as E,
+	Option as O,
+	flow,
+	pipe
+} from "effect"
+import { constant } from "effect/Function"
 import type { Db } from "../db.js"
 import { settingTable } from "../schemas/setting.schema.js"
 
@@ -53,22 +62,33 @@ export class SettingRepository {
 	saveLastestCursor({
 		eventSeq,
 		txDigest
-	}: EventId): Result<void, DatabaseException> {
+	}: EventId): Result<void, DatabaseException | NoRecordUpdatedException> {
 		return pipe(
 			E.tryPromise({
 				try: () =>
-					this.db.transaction(async tx => {
-						tx.update(settingTable)
-							.set({ key: "lastest_event_seq", value: eventSeq })
-							.where(eq(settingTable.key, "lastest_event_seq"))
-
-						tx.update(settingTable)
-							.set({ key: "lastest_event_tx_didest", value: txDigest })
-							.where(eq(settingTable.key, "lastest_event_tx_didest"))
-					}),
+					this.db.transaction(tx =>
+						Promise.all([
+							tx
+								.update(settingTable)
+								.set({ key: "lastest_event_seq", value: eventSeq })
+								.where(eq(settingTable.key, "lastest_event_seq")),
+							tx
+								.update(settingTable)
+								.set({ key: "lastest_event_tx_didest", value: txDigest })
+								.where(eq(settingTable.key, "lastest_event_tx_didest"))
+						])
+					),
 				catch: error => new DatabaseException({ error })
 			}),
-			E.asVoid
+			E.flatMap(
+				flow(
+					A.every(result => Number(result.rowCount) > 0),
+					B.match({
+						onTrue: constant(E.void),
+						onFalse: constant(E.fail(new NoRecordUpdatedException()))
+					})
+				)
+			)
 		)
 	}
 

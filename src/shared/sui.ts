@@ -1,8 +1,9 @@
-import type {
-	EventId,
-	PaginatedEvents,
-	QueryEventsParams,
-	SuiClient
+import {
+	type EventId,
+	type PaginatedEvents,
+	type QueryEventsParams,
+	SuiClient,
+	getFullnodeUrl
 } from "@mysten/sui/client"
 import { verifyPersonalMessageSignature } from "@mysten/sui/verify"
 import { SuiClientException } from "@root/exceptions/sui-client.ex.js"
@@ -16,9 +17,15 @@ type SuiAddress = string
 export class Web3Client {
 	static VENDING_MACHINE_MODULE = "vending_machine"
 	static PACKAGE_ID =
-		"0x0fe25a24dd4a3bbafb8621cd03fee7b1a386189e74c297468c12bbd42c4af64"
+		"0x0fe25a24dd4a3bbafb8621cd03fee7b1a386189e74c297468c12bbd42c4af604"
 
-	constructor(private client: SuiClient) {}
+	private client: SuiClient
+
+	constructor() {
+		this.client = new SuiClient({
+			url: getFullnodeUrl("testnet")
+		})
+	}
 
 	verifyPersonalMsg(
 		msg: string,
@@ -43,12 +50,10 @@ export class Web3Client {
 	queryEvents(
 		params: QueryEventsParams
 	): Result<PaginatedEvents, SuiClientException> {
-		return pipe(
-			E.tryPromise({
-				try: () => this.client.queryEvents(params),
-				catch: error => new SuiClientException({ error })
-			})
-		)
+		return E.tryPromise({
+			try: () => this.client.queryEvents(params),
+			catch: error => new SuiClientException({ error })
+		})
 	}
 
 	getFirstEventId(): Result<EventId, SuiClientException> {

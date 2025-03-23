@@ -9,8 +9,8 @@
 		"format": "biome format ./src --fix",
 		"clean": "biome check ./src --write",
 		"release": "tsc --noEmit && rm -rf dist && swc --strip-leading-paths -d dist src",
-    "db:push":"pnpm release && drizzle-kit push",
-    "start:console":"pnpm release && node --env-file=.env dist/console.js"
+		"db:push": "pnpm release && drizzle-kit push",
+		"start:console": "pnpm release && node --env-file=.env dist/console.js"
 	},
 	"dependencies": {
 		"@fastify/autoload": "^6.2.0",
@@ -43,5 +43,11 @@
 		"drizzle-kit": "^0.30.5",
 		"nodemon": "^3.1.9",
 		"typescript": "^5.8.2"
+	},
+	"pnpm": {
+		"ignoredBuiltDependencies": [
+			"@biomejs/biome",
+			"@swc/core"
+		]
 	}
 }
