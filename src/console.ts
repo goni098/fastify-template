@@ -18,7 +18,7 @@ function main() {
 				new EventScanner(settingRepository, eventRepository, web3)
 		),
 		E.bindTo("scanner"),
-		E.bind("cursor", ({ scanner }) => scanner.resolveCursor()),
+		E.bind("cursor", ({ scanner }) => scanner.getFirstCursorOrSave()),
 		E.flatMap(({ scanner, cursor }) =>
 			E.iterate(cursor, {
 				body: cursor => scanner.scan(10, cursor),

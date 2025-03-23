@@ -9,8 +9,7 @@ import type { NoRecordUpdatedException } from "@root/exceptions/no-record-update
 import type { SuiClientException } from "@root/exceptions/sui-client.ex.js"
 import { Web3Client } from "@root/shared/sui.js"
 import type { Result } from "@root/types/result.type.js"
-import { Boolean as B, Chunk as C, Duration, Effect as E } from "effect"
-import { constant, pipe } from "effect/Function"
+import { Chunk as C, Duration, Effect as E, pipe } from "effect"
 
 export class EventScanner {
 	constructor(
@@ -47,13 +46,20 @@ export class EventScanner {
 			E.tap(({ hasNextPage }) =>
 				E.sleep(Duration.seconds(6)).pipe(E.when(() => !hasNextPage))
 			),
-			E.flatMap(({ hasNextPage, nextCursor }) =>
-				this.resolveNextCursor(hasNextPage, cursor, nextCursor)
+			E.flatMap(({ nextCursor }) =>
+				pipe(
+					nextCursor,
+					E.fromNullable,
+					E.orElse(() => this.getLastCursor())
+				)
 			)
 		)
 	}
 
-	resolveCursor(): Result<EventCursor, DatabaseException | SuiClientException> {
+	getFirstCursorOrSave(): Result<
+		EventCursor,
+		DatabaseException | SuiClientException
+	> {
 		return this.settingRepository.getLastestCursor().pipe(
 			E.flatten,
 			E.catchTag("NoSuchElementException", () => this.web3.getFirstEventId()),
@@ -62,6 +68,18 @@ export class EventScanner {
 			),
 			E.tap(cursor =>
 				this.settingRepository.set("lastest_event_tx_didest", cursor.txDigest)
+			)
+		)
+	}
+
+	private getLastCursor(): Result<
+		EventCursor,
+		DatabaseException | SuiClientException
+	> {
+		return this.settingRepository.getLastestCursor().pipe(
+			E.flatten,
+			E.catchTag("NoSuchElementException", () =>
+				E.dieMessage("Not found cursor from setting table")
 			)
 		)
 	}
@@ -97,25 +115,6 @@ export class EventScanner {
 				})
 			),
 			E.all
-		)
-	}
-
-	private resolveNextCursor(
-		hasNextPage: boolean,
-		scannedCursor: EventCursor,
-		nextCursor: EventCursor | null | undefined
-	): Result<EventCursor, never> {
-		return pipe(
-			hasNextPage,
-			B.match({
-				onTrue: pipe(
-					nextCursor,
-					E.fromNullable,
-					E.catchAll(() => E.dieMessage("Next cursor was null")),
-					constant
-				),
-				onFalse: () => E.succeed(scannedCursor)
-			})
 		)
 	}
 }
