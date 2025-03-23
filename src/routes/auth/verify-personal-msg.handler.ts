@@ -1,10 +1,11 @@
 import { UserRepository } from "@root/database/repositories/user.repository.js"
 import { HttpException } from "@root/exceptions/http.ex.js"
-import { JwtSignException } from "@root/exceptions/jwt-sign.ex.js"
-import { RedisException } from "@root/exceptions/redis.ex.js"
+import type { RedisException } from "@root/exceptions/redis.ex.js"
+import type { Result } from "@root/types/result.type.js"
 import { userSignMsgKey } from "@root/utils/redis.util.js"
 import { unwrapResult } from "@root/utils/result.util.js"
 import { Effect as E, pipe } from "effect"
+import type { FastifyInstance } from "fastify"
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod"
 import { z } from "zod"
 
@@ -25,35 +26,17 @@ const handler: FastifyPluginAsyncZod = async self => {
 				}
 			}
 		},
-		({ body }, reply) =>
+		({ body }) =>
 			pipe(
 				E.Do,
 				E.let("userRepo", () => self.resolveRepository(UserRepository)),
 				E.bind("address", () =>
 					self.web3.verifyPersonalMsg(body.message, body.signature)
 				),
-				E.tap(({ address }) =>
-					E.tryPromise({
-						try: () => self.redis.get(userSignMsgKey(address)),
-						catch: error => new RedisException({ error })
-					}).pipe(
-						E.flatMap(E.fromNullable),
-						E.tap(message =>
-							HttpException.Unauthorized("unmatch message").pipe(
-								E.when(() => body.message !== message)
-							)
-						),
-						E.catchTag("NoSuchElementException", () =>
-							HttpException.Unauthorized("message was not created")
-						)
-					)
-				),
+				E.tap(({ address }) => validateMessage(self, address, body.message)),
 				E.flatMap(({ address, userRepo }) => userRepo.upsert({ address })),
 				E.flatMap(user =>
-					E.tryPromise({
-						try: () => reply.jwtSign({ id: user.id, address: user.address }),
-						catch: error => new JwtSignException({ error })
-					})
+					self.jwt.sign({ id: user.id, address: user.address })
 				),
 				E.map(accessToken => ({
 					accessToken
@@ -62,5 +45,23 @@ const handler: FastifyPluginAsyncZod = async self => {
 			)
 	)
 }
+
+const validateMessage = (
+	self: FastifyInstance,
+	address: string,
+	message: string
+): Result<void, RedisException | HttpException> =>
+	self.redis.get(userSignMsgKey(address)).pipe(
+		E.flatMap(E.fromNullable),
+		E.tap(storedMessage =>
+			HttpException.Unauthorized("unmatch message").pipe(
+				E.when(() => message !== storedMessage)
+			)
+		),
+		E.catchTag("NoSuchElementException", () =>
+			HttpException.Unauthorized("message was not created")
+		),
+		E.asVoid
+	)
 
 export default handler

@@ -2,8 +2,6 @@ import { dirname, join } from "node:path"
 import { fileURLToPath } from "node:url"
 import autoLoad from "@fastify/autoload"
 import cors from "@fastify/cors"
-import fastifyJwt from "@fastify/jwt"
-import fastifyRedis from "@fastify/redis"
 import fastifySensible from "@fastify/sensible"
 import fastifySwagger from "@fastify/swagger"
 import fastifySwaggerUi from "@fastify/swagger-ui"
@@ -21,7 +19,8 @@ import {
 } from "fastify-type-provider-zod"
 import { DateTime } from "luxon"
 import type { Claims } from "./plugins/auth.plugin.js"
-import { ACCESS_TOKEN_SECRET } from "./shared/env.js"
+import type { JwtService } from "./shared/jwt.js"
+import type { RedisClient } from "./shared/redis.js"
 import type { Web3Client } from "./shared/sui.js"
 import type { RepositoryFactory } from "./types/repsoitory-factory.type.js"
 import { canIntoResponse } from "./utils/error.util.js"
@@ -29,17 +28,13 @@ import { canIntoResponse } from "./utils/error.util.js"
 declare module "fastify" {
 	interface FastifyInstance {
 		resolveRepository: <R>(repo: RepositoryFactory<R>) => R
+		jwt: JwtService
 		web3: Web3Client
+		redis: RedisClient
 	}
-}
 
-declare module "@fastify/jwt" {
-	interface FastifyJWT {
-		payload: {
-			id: number
-			address: string
-		}
-		user: Claims
+	interface FastifyRequest {
+		claims: Claims
 	}
 }
 
@@ -80,12 +75,8 @@ const server = () =>
 			.setValidatorCompiler(validatorCompiler)
 			.setSerializerCompiler(serializerCompiler)
 			.setErrorHandler(errorHandler)
-			.register(fastifyRedis)
 			.register(cors)
 			.register(fastifySensible)
-			.register(fastifyJwt, {
-				secret: ACCESS_TOKEN_SECRET
-			})
 			.register(fastifySwagger, {
 				openapi: {
 					info: { title: "FEFT", version: "1.0.0" },

@@ -1,5 +1,4 @@
 import {} from "@mysten/sui/utils"
-import { RedisException } from "@root/exceptions/redis.ex.js"
 import { suiAddress } from "@root/shared/parser.js"
 import { userSignMsgKey } from "@root/utils/redis.util.js"
 import { unwrapResult } from "@root/utils/result.util.js"
@@ -28,12 +27,7 @@ const handler: FastifyPluginAsyncZod = async self => {
 			pipe(
 				randomstr.generate(),
 				E.succeed,
-				E.tap(msg =>
-					E.tryPromise({
-						try: () => self.redis.set(userSignMsgKey(query.address), msg),
-						catch: error => new RedisException({ error })
-					})
-				),
+				E.tap(msg => self.redis.set(userSignMsgKey(query.address), msg, 300)),
 				E.map(message => ({ message })),
 				unwrapResult
 			)

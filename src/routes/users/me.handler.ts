@@ -18,11 +18,11 @@ const handler: FastifyPluginAsyncZod = async self => {
 				}
 			}
 		},
-		({ user }) =>
+		({ claims }) =>
 			pipe(
 				UserRepository,
 				self.resolveRepository,
-				userRepository => userRepository.findById(user.id),
+				userRepository => userRepository.findById(claims.id),
 				unwrapResult
 			)
 	)
