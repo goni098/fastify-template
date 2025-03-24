@@ -114,7 +114,7 @@ export class EventScanner {
 					timestamp: event.timestampMs
 				})
 			),
-			E.all
+			E.allWith({ concurrency: "unbounded" })
 		)
 	}
 }

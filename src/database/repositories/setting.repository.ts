@@ -95,7 +95,7 @@ export class SettingRepository {
 	getLastestCursor(): Result<O.Option<EventCursor>, DatabaseException> {
 		return pipe(
 			this.get("lastest_event_seq"),
-			E.zip(this.get("lastest_event_tx_didest")),
+			E.zip(this.get("lastest_event_tx_didest"), { concurrent: true }),
 			E.map(([eventSeq, txDigest]) =>
 				O.zipWith(eventSeq, txDigest, (eventSeq, txDigest) => ({
 					eventSeq,

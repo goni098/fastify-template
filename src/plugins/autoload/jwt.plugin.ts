@@ -21,7 +21,7 @@ const plugin: FastifyPluginAsync = async self => {
 				),
 				renewToken: self.jwt.sign({ sub: user.id }, "120d", RENEW_TOKEN_SECRET)
 			},
-			E.all,
+			E.allWith({ concurrency: "unbounded" }),
 			E.tap(({ renewToken }) =>
 				self.repositories.renewToken.save(user.id, renewToken)
 			)
