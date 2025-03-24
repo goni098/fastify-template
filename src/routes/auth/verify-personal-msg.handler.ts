@@ -21,7 +21,8 @@ const handler: FastifyPluginAsyncZod = async self => {
 				tags: ["auth"],
 				response: {
 					200: z.object({
-						accessToken: z.string()
+						accessToken: z.string(),
+						renewToken: z.string()
 					})
 				}
 			}
@@ -36,11 +37,13 @@ const handler: FastifyPluginAsyncZod = async self => {
 				E.tap(({ address }) => validateMessage(self, address, body.message)),
 				E.flatMap(({ address, userRepo }) => userRepo.upsert({ address })),
 				E.flatMap(user =>
-					self.jwt.sign({ id: user.id, address: user.address })
+					self.jwt.sign({ id: user.id, address: user.address }, "12h").pipe(
+						E.zip(self.jwt.sign({ sub: user.id }, "120d", "renew_secret"), {
+							concurrent: true
+						})
+					)
 				),
-				E.map(accessToken => ({
-					accessToken
-				})),
+				E.map(([accessToken, renewToken]) => ({ accessToken, renewToken })),
 				unwrapResult
 			)
 	)
@@ -59,7 +62,7 @@ const validateMessage = (
 			)
 		),
 		E.catchTag("NoSuchElementException", () =>
-			HttpException.Unauthorized("message was not created")
+			HttpException.Unauthorized("message was not created or expired")
 		),
 		E.asVoid
 	)
