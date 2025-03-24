@@ -1,10 +1,10 @@
 import { Duration, Effect as E, Schedule, flow, pipe } from "effect"
 import { constTrue, constant } from "effect/Function"
-import { EventScanner } from "./console/event-scanner.js"
 import { establishConnection } from "./database/db.js"
 import { EventRepository } from "./database/repositories/event.repository.js"
 import { SettingRepository } from "./database/repositories/setting.repository.js"
-import { Web3Client } from "./services/sui.js"
+import { EventScanner } from "./services/event-scanner.js"
+import { Web3Client } from "./services/web3-client.js"
 
 function main() {
 	return pipe(

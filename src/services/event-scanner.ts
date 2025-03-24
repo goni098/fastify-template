@@ -7,7 +7,7 @@ import type {
 import type { DatabaseException } from "@root/exceptions/database.ex.js"
 import type { NoRecordUpdatedException } from "@root/exceptions/no-record-updated.ex.js"
 import type { SuiClientException } from "@root/exceptions/sui-client.ex.js"
-import { Web3Client } from "@root/services/sui.js"
+import { Web3Client } from "@root/services/web3-client.js"
 import type { Result } from "@root/types/result.type.js"
 import { Chunk as C, Duration, Effect as E, pipe } from "effect"
 

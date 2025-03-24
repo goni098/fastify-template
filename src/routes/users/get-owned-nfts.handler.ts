@@ -1,5 +1,5 @@
 import { authPlg } from "@root/plugins/auth.plugin.js"
-import { Web3Client } from "@root/services/sui.js"
+import { Web3Client } from "@root/services/web3-client.js"
 import { SECURITY_TAG } from "@root/shared/const.js"
 import { numberic, optionalStr } from "@root/shared/parser.js"
 import { unwrapResult } from "@root/utils/result.util.js"

@@ -1,4 +1,4 @@
-import { Web3Client } from "@root/services/sui.js"
+import { Web3Client } from "@root/services/web3-client.js"
 import type { FastifyPluginAsync } from "fastify"
 
 const plugin: FastifyPluginAsync = async self => {
