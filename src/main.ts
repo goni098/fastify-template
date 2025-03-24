@@ -5,13 +5,9 @@ import cors from "@fastify/cors"
 import fastifySensible from "@fastify/sensible"
 import fastifySwagger from "@fastify/swagger"
 import fastifySwaggerUi from "@fastify/swagger-ui"
-import { Option as O, pipe } from "effect"
+import { Match as M, Option as O, pipe } from "effect"
 import { isNoSuchElementException } from "effect/Cause"
-import fastify, {
-	type FastifyError,
-	type FastifyReply,
-	type FastifyRequest
-} from "fastify"
+import fastify, { type FastifyReply, type FastifyRequest } from "fastify"
 import {
 	jsonSchemaTransform,
 	serializerCompiler,
@@ -31,7 +27,7 @@ import type { JwtService } from "./services/jwt-service.js"
 import type { RedisClient } from "./services/redis-client.js"
 import type { Web3Client } from "./services/web3-client.js"
 import type { Result } from "./types/result.type.js"
-import { canIntoResponse } from "./utils/error.util.js"
+import { canIntoResponse, isFastifyError } from "./utils/error.util.js"
 
 declare module "fastify" {
 	interface FastifyInstance {
@@ -53,35 +49,31 @@ declare module "fastify" {
 }
 
 const errorHandler = (
-	error: FastifyError,
+	error: unknown,
 	request: FastifyRequest,
 	reply: FastifyReply
-) => {
-	if (error.statusCode) return reply.send(error)
-
-	if (isNoSuchElementException(error))
-		return reply.internalServerError(error._tag)
-
-	if (canIntoResponse(error)) {
-		const response = error.intoResponse()
-		reply.statusCode = response.code
-
-		if (response.code === 500) {
-			console.error({
-				timestamp: DateTime.now().toISO(),
-				endpoint: request.url,
-				method: request.method,
-				originalError: error
+) =>
+	M.value(error).pipe(
+		M.when(isFastifyError, err => reply.send(err)),
+		M.when(isNoSuchElementException, ex => reply.internalServerError(ex._tag)),
+		M.when(canIntoResponse, ex =>
+			pipe(ex.intoResponse(), res => {
+				if (res.code === 500) {
+					console.error({
+						timestamp: DateTime.now().toISO(),
+						endpoint: request.url,
+						method: request.method,
+						originalError: error
+					})
+				}
+				return reply.status(res.code).send(res)
 			})
-		}
-
-		return reply.send(response)
-	}
-
-	console.error("untagged error: ", error)
-
-	return reply.internalServerError()
-}
+		),
+		M.orElse(err => {
+			console.error("untagged error: ", err)
+			return reply.internalServerError()
+		})
+	)
 
 const server = () =>
 	pipe(import.meta.url, fileURLToPath, dirname, __dirname =>

@@ -8,7 +8,7 @@ export const positiveInt = () =>
 		.pipe(z.number().int().min(1))
 
 export const numberic = () =>
-	z.union([z.string(), z.number()]).transform(Number)
+	z.union([z.string(), z.number()]).transform(Number).pipe(z.number())
 
 export const ignoreEmptyStr = (trim = true) =>
 	z.string().transform(val => {

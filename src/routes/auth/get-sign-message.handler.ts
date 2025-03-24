@@ -1,4 +1,3 @@
-import {} from "@mysten/sui/utils"
 import { suiAddress } from "@root/shared/parser.js"
 import { userSignMsgKey } from "@root/utils/redis.util.js"
 import { unwrapResult } from "@root/utils/result.util.js"

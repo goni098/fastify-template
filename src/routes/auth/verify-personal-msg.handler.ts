@@ -31,7 +31,7 @@ const handler: FastifyPluginAsyncZod = async self => {
 				self.web3.verifyPersonalMsg(body.message, body.signature),
 				E.tap(address => validateMessage(self, address, body.message)),
 				E.flatMap(address => self.repositories.user.upsert({ address })),
-				E.flatMap(self.sign),
+				E.flatMap(user => self.sign(user)),
 				unwrapResult
 			)
 	)
