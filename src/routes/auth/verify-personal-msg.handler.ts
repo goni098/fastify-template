@@ -1,4 +1,3 @@
-import { UserRepository } from "@root/database/repositories/user.repository.js"
 import { HttpException } from "@root/exceptions/http.ex.js"
 import type { RedisException } from "@root/exceptions/redis.ex.js"
 import type { Result } from "@root/types/result.type.js"
@@ -29,21 +28,10 @@ const handler: FastifyPluginAsyncZod = async self => {
 		},
 		({ body }) =>
 			pipe(
-				E.Do,
-				E.let("userRepo", () => self.resolveRepository(UserRepository)),
-				E.bind("address", () =>
-					self.web3.verifyPersonalMsg(body.message, body.signature)
-				),
-				E.tap(({ address }) => validateMessage(self, address, body.message)),
-				E.flatMap(({ address, userRepo }) => userRepo.upsert({ address })),
-				E.flatMap(user =>
-					self.jwt.sign({ id: user.id, address: user.address }, "12h").pipe(
-						E.zip(self.jwt.sign({ sub: user.id }, "120d", "renew_secret"), {
-							concurrent: true
-						})
-					)
-				),
-				E.map(([accessToken, renewToken]) => ({ accessToken, renewToken })),
+				self.web3.verifyPersonalMsg(body.message, body.signature),
+				E.tap(address => validateMessage(self, address, body.message)),
+				E.flatMap(address => self.repositories.user.upsert({ address })),
+				E.flatMap(user => self.sign(user)),
 				unwrapResult
 			)
 	)

@@ -24,9 +24,7 @@ export class Web3Client {
 	private client: SuiClient
 
 	constructor() {
-		this.client = new SuiClient({
-			url: getFullnodeUrl("testnet")
-		})
+		this.client = new SuiClient({ url: getFullnodeUrl("testnet") })
 	}
 
 	verifyPersonalMsg(

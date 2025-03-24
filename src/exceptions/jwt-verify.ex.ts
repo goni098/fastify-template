@@ -11,7 +11,7 @@ export class JwtVerifyException
 	public intoResponse() {
 		return pipe(this.error, toError, retrieveErrorMessage, message => ({
 			message,
-			code: 400,
+			code: 401,
 			tag: this._tag
 		}))
 	}

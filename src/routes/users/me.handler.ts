@@ -1,4 +1,3 @@
-import { UserRepository } from "@root/database/repositories/user.repository.js"
 import { userSelectSchema } from "@root/database/schemas/user.schema.js"
 import { authPlg } from "@root/plugins/auth.plugin.js"
 import { SECURITY_TAG } from "@root/shared/const.js"
@@ -19,12 +18,7 @@ const handler: FastifyPluginAsyncZod = async self => {
 			}
 		},
 		({ claims }) =>
-			pipe(
-				UserRepository,
-				self.resolveRepository,
-				userRepository => userRepository.findById(claims.id),
-				unwrapResult
-			)
+			pipe(self.repositories.user.findById(claims.id), unwrapResult)
 	)
 }
 

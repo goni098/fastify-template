@@ -18,16 +18,30 @@ import {
 	validatorCompiler
 } from "fastify-type-provider-zod"
 import { DateTime } from "luxon"
+import type { EventRepository } from "./database/repositories/event.repository.js"
+import type { RenewTokenRepository } from "./database/repositories/renew-token.repository.js"
+import type { SettingRepository } from "./database/repositories/setting.repository.js"
+import type { UserRepository } from "./database/repositories/user.repository.js"
+import type { User } from "./database/schemas/user.schema.js"
+import type { DatabaseException } from "./exceptions/database.ex.js"
+import type { JwtSignException } from "./exceptions/jwt-sign.ex.js"
 import type { Claims } from "./plugins/auth.plugin.js"
+import type { Tokens } from "./plugins/autoload/jwt.plugin.js"
 import type { JwtService } from "./services/jwt-service.js"
 import type { RedisClient } from "./services/redis-client.js"
 import type { Web3Client } from "./services/web3-client.js"
-import type { RepositoryFactory } from "./types/repsoitory-factory.type.js"
+import type { Result } from "./types/result.type.js"
 import { canIntoResponse } from "./utils/error.util.js"
 
 declare module "fastify" {
 	interface FastifyInstance {
-		resolveRepository: <R>(repo: RepositoryFactory<R>) => R
+		repositories: {
+			user: UserRepository
+			renewToken: RenewTokenRepository
+			setting: SettingRepository
+			event: EventRepository
+		}
+		sign: (user: User) => Result<Tokens, DatabaseException | JwtSignException>
 		jwt: JwtService
 		web3: Web3Client
 		redis: RedisClient
