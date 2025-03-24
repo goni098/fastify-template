@@ -1,7 +1,7 @@
 import { authPlg } from "@root/plugins/auth.plugin.js"
+import { Web3Client } from "@root/services/sui.js"
 import { SECURITY_TAG } from "@root/shared/const.js"
 import { numberic, optionalStr } from "@root/shared/parser.js"
-import { Web3Client } from "@root/shared/sui.js"
 import { unwrapResult } from "@root/utils/result.util.js"
 import { pipe } from "effect"
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod"

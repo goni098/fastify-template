@@ -4,7 +4,7 @@ import { EventScanner } from "./console/event-scanner.js"
 import { establishConnection } from "./database/db.js"
 import { EventRepository } from "./database/repositories/event.repository.js"
 import { SettingRepository } from "./database/repositories/setting.repository.js"
-import { Web3Client } from "./shared/sui.js"
+import { Web3Client } from "./services/sui.js"
 
 function main() {
 	return pipe(

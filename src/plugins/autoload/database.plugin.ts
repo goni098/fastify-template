@@ -1,15 +1,18 @@
 import { establishConnection } from "@root/database/db.js"
 import type { RepositoryFactory } from "@root/types/repsoitory-factory.type.js"
+import { pipe } from "effect"
 import type { FastifyPluginAsync } from "fastify"
 
 const plugin: FastifyPluginAsync = async self => {
-	const logFeatureFlag = process.env["LOG_QUERY"]
-
-	const db = establishConnection(logFeatureFlag === "enable")
-
 	self.decorate(
 		"resolveRepository",
-		<T>(Factory: RepositoryFactory<T>) => new Factory(db)
+		pipe(
+			process.env["LOG_QUERY"] === "enable",
+			establishConnection,
+			db =>
+				<T>(Factory: RepositoryFactory<T>) =>
+					new Factory(db)
+		)
 	)
 }
 

@@ -1,9 +1,10 @@
 import { JwtSignException } from "@root/exceptions/jwt-sign.ex.js"
 import { JwtVerifyException } from "@root/exceptions/jwt-verify.ex.js"
 import type { Result } from "@root/types/result.type.js"
-import { Effect as E, Option, pipe } from "effect"
+import { Effect as E, Boolean as B, pipe } from "effect"
 import jwt from "jsonwebtoken"
-import { ACCESS_TOKEN_SECRET } from "./env.js"
+import { ACCESS_TOKEN_SECRET } from "../shared/env.js"
+import { constant } from "effect/Function"
 
 export type SignPayload = { id: number; address: string } | { sub: number }
 
@@ -15,12 +16,13 @@ export class JwtService {
 		return E.async(resume =>
 			jwt.sign(payload, secret, (error, token) =>
 				pipe(
-					error,
-					Option.fromNullable,
-					Option.match({
-						onNone: () => E.succeed(token!).pipe(resume),
-						onSome: error =>
-							E.fail(new JwtSignException({ error })).pipe(resume)
+					!error,
+					B.match({
+						onTrue: E.succeed(token!).pipe(resume, constant),
+						onFalse: E.fail(new JwtSignException({ error })).pipe(
+							resume,
+							constant
+						)
 					})
 				)
 			)
@@ -34,12 +36,13 @@ export class JwtService {
 		return E.async(resume =>
 			jwt.verify(token, secret, (error, payload) =>
 				pipe(
-					error,
-					Option.fromNullable,
-					Option.match({
-						onNone: () => resume(E.succeed(payload as T)),
-						onSome: error =>
-							E.fail(new JwtVerifyException({ error })).pipe(resume)
+					!error,
+					B.match({
+						onTrue: E.succeed(payload as T).pipe(resume, constant),
+						onFalse: E.fail(new JwtVerifyException({ error })).pipe(
+							resume,
+							constant
+						)
 					})
 				)
 			)

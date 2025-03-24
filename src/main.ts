@@ -19,9 +19,9 @@ import {
 } from "fastify-type-provider-zod"
 import { DateTime } from "luxon"
 import type { Claims } from "./plugins/auth.plugin.js"
-import type { JwtService } from "./shared/jwt.js"
-import type { RedisClient } from "./shared/redis.js"
-import type { Web3Client } from "./shared/sui.js"
+import type { JwtService } from "./services/jwt.js"
+import type { RedisClient } from "./services/redis.js"
+import type { Web3Client } from "./services/sui.js"
 import type { RepositoryFactory } from "./types/repsoitory-factory.type.js"
 import { canIntoResponse } from "./utils/error.util.js"
 

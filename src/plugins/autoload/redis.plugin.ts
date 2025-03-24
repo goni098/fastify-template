@@ -1,4 +1,4 @@
-import { RedisClient } from "@root/shared/redis.js"
+import { RedisClient } from "@root/services/redis.js"
 import type { FastifyPluginAsync } from "fastify"
 
 const plugin: FastifyPluginAsync = async self => {
