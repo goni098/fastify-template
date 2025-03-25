@@ -13,7 +13,6 @@ import {
 	serializerCompiler,
 	validatorCompiler
 } from "fastify-type-provider-zod"
-import { DateTime } from "luxon"
 import type { EventRepository } from "./database/repositories/event.repository.js"
 import type { RenewTokenRepository } from "./database/repositories/renew-token.repository.js"
 import type { SettingRepository } from "./database/repositories/setting.repository.js"
@@ -27,7 +26,11 @@ import type { JwtService } from "./services/jwt-service.js"
 import type { RedisClient } from "./services/redis-client.js"
 import type { Web3Client } from "./services/web3-client.js"
 import type { Result } from "./types/result.type.js"
-import { canIntoResponse, isFastifyError } from "./utils/error.util.js"
+import {
+	canIntoResponse,
+	isFastifyError,
+	traceError
+} from "./utils/error.util.js"
 
 declare module "fastify" {
 	interface FastifyInstance {
@@ -57,17 +60,11 @@ const errorHandler = (
 		M.when(isFastifyError, err => reply.send(err)),
 		M.when(isNoSuchElementException, ex => reply.internalServerError(ex._tag)),
 		M.when(canIntoResponse, ex =>
-			pipe(ex.intoResponse(), res => {
-				if (res.code === 500) {
-					console.error({
-						timestamp: DateTime.now().toISO(),
-						endpoint: request.url,
-						method: request.method,
-						originalError: error
-					})
-				}
-				return reply.status(res.code).send(res)
-			})
+			pipe(
+				ex.intoResponse(),
+				response => traceError(request, response, error),
+				response => reply.status(response.code).send(response)
+			)
 		),
 		M.orElse(err => {
 			console.error("untagged error: ", err)

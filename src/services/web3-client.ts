@@ -11,7 +11,7 @@ import { verifyPersonalMessageSignature } from "@mysten/sui/verify"
 import { SuiClientException } from "@root/exceptions/sui-client.ex.js"
 import { VerifySigException } from "@root/exceptions/verify-sig.ex.js"
 import type { Result } from "@root/types/result.type.js"
-import { retrieveErrorMessage, toError } from "@root/utils/error.util.js"
+import { intoError, retrieveErrorMessage } from "@root/utils/error.util.js"
 import { Array as A, Effect as E, flow, pipe } from "effect"
 
 type SuiAddress = string
@@ -40,7 +40,7 @@ export class Web3Client {
 					),
 				catch: error =>
 					new VerifySigException({
-						message: pipe(error, toError, retrieveErrorMessage)
+						message: pipe(error, intoError, retrieveErrorMessage)
 					})
 			}),
 			E.map(pubkey => pubkey.toSuiAddress())

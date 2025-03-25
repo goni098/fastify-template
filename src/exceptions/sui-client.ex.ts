@@ -1,6 +1,6 @@
 import type { IntoResponse } from "@root/types/result.type.js"
-import { retrieveErrorMessage, toError } from "@root/utils/error.util.js"
-import { Data, pipe } from "effect"
+import { fromUnknownToResponse } from "@root/utils/error.util.js"
+import { Data } from "effect"
 
 export class SuiClientException
 	extends Data.TaggedError("SuiClientException")<{
@@ -9,10 +9,6 @@ export class SuiClientException
 	implements IntoResponse
 {
 	public intoResponse() {
-		return pipe(this.error, toError, retrieveErrorMessage, message => ({
-			message,
-			code: 500,
-			tag: this._tag
-		}))
+		return fromUnknownToResponse(this)
 	}
 }
