@@ -40,5 +40,8 @@
 			"arrowParentheses": "asNeeded",
 			"trailingCommas": "none"
 		}
-	}
+	},
+  "files": {
+    "ignore": ["build/**","dist/**","node_modules/**"]
+  }
 }
