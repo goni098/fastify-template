@@ -1,9 +1,8 @@
-import { HttpException } from "@root/exceptions/http.ex.js"
-import type { Result } from "@root/types/result.type.js"
-import { unwrapResult } from "@root/utils/result.util.js"
+import { HttpException } from "@exceptions/http.ex.js"
 import { Array as A, Effect as E, pipe } from "effect"
 import type { FastifyPluginAsync, FastifyRequest } from "fastify"
 import fastifyPlugin from "fastify-plugin"
+import type { Result } from "#types/result.type.js"
 
 export type Claims = {
 	id: number
@@ -13,7 +12,7 @@ export type Claims = {
 }
 
 const plugin: FastifyPluginAsync = async self => {
-	self.addHook("onRequest", async (request, _reply) =>
+	self.addHook("onRequest", async (request, reply) =>
 		pipe(
 			lookupToken(request),
 			E.flatMap(token => self.jwt.verify<Claims>(token)),
@@ -22,7 +21,7 @@ const plugin: FastifyPluginAsync = async self => {
 					request.claims = claims
 				})
 			),
-			unwrapResult
+			reply.unwrapResult
 		)
 	)
 }
@@ -36,4 +35,4 @@ const lookupToken = (request: FastifyRequest): Result<string, HttpException> =>
 		E.mapError(() => HttpException.unauthorized("Missing Bearer token"))
 	)
 
-export const authPlg = fastifyPlugin(plugin)
+export const authPlugin = fastifyPlugin(plugin)

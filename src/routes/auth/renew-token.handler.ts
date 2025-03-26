@@ -1,7 +1,6 @@
+import { HttpException } from "@exceptions/http.ex.js"
 import {} from "@mysten/sui/utils"
-import { HttpException } from "@root/exceptions/http.ex.js"
-import { RENEW_TOKEN_SECRET } from "@root/shared/env.js"
-import { unwrapResult } from "@root/utils/result.util.js"
+import { RENEW_TOKEN_SECRET } from "@shared/env.js"
 import { Effect as E, pipe } from "effect"
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod"
 import { z } from "zod"
@@ -23,7 +22,7 @@ const handler: FastifyPluginAsyncZod = async self => {
 				}
 			}
 		},
-		({ body }) =>
+		({ body }, reply) =>
 			pipe(
 				E.Do,
 				E.bind("claims", () =>
@@ -45,7 +44,7 @@ const handler: FastifyPluginAsyncZod = async self => {
 					self.repositories.renewToken.save(claims.sub, tokens.renewToken)
 				),
 				E.map(({ tokens }) => tokens),
-				unwrapResult
+				reply.unwrapResult
 			)
 	)
 }

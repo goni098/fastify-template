@@ -1,19 +1,33 @@
 {
 	"compilerOptions": {
-		"lib": ["es2022"],
+		"lib": ["ES2024"],
+		"target": "ES2024",
 		"module": "NodeNext",
 		"moduleResolution": "nodenext",
-		"target": "es2022",
+
+		"esModuleInterop": true,
+		"isolatedModules": true,
+		"verbatimModuleSyntax": true,
+		"useDefineForClassFields": true,
+
 		"sourceMap": true,
+
 		"baseUrl": "./",
 		"outDir": "dist",
 		"paths": {
-			"@root/*": ["src/*"],
+			"@database/*": ["src/database/*"],
+			"@exceptions/*": ["src/exceptions/*"],
+			"@plugins/*": ["src/plugins/*"],
+			"@routes/*": ["src/routes/*"],
+			"@services/*": ["src/services/*"],
+			"@shared/*": ["src/shared/*"],
+			"#types/*": ["src/types/*"],
+			"@utils/*": ["src/utils/*"],
 			"@test/*": ["test/*"],
 			"@test-helper/*": ["test-helper/*"]
 		},
+
 		"strict": true,
-		"esModuleInterop": true,
 		"skipLibCheck": true,
 		"noImplicitAny": true,
 		"strictNullChecks": true,

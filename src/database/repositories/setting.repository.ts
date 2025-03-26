@@ -1,7 +1,6 @@
+import type { DatabaseException } from "@exceptions/database.ex.js"
+import { NoRecordUpdatedException } from "@exceptions/no-record-updated.ex.js"
 import type { EventId } from "@mysten/sui/client"
-import type { DatabaseException } from "@root/exceptions/database.ex.js"
-import { NoRecordUpdatedException } from "@root/exceptions/no-record-updated.ex.js"
-import type { Result } from "@root/types/result.type.js"
 import { eq } from "drizzle-orm"
 import {
 	Array as A,
@@ -12,6 +11,7 @@ import {
 	pipe
 } from "effect"
 import { constant } from "effect/Function"
+import type { Result } from "#types/result.type.js"
 import { settingTable } from "../schemas/setting.schema.js"
 import { BaseRepository } from "./_base.repository.js"
 

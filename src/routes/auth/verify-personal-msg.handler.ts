@@ -1,12 +1,11 @@
-import { HttpException } from "@root/exceptions/http.ex.js"
-import type { RedisException } from "@root/exceptions/redis.ex.js"
-import type { Result } from "@root/types/result.type.js"
-import { userSignMsgKey } from "@root/utils/redis.util.js"
-import { unwrapResult } from "@root/utils/result.util.js"
+import { HttpException } from "@exceptions/http.ex.js"
+import type { RedisException } from "@exceptions/redis.ex.js"
+import { userSignMsgKey } from "@utils/redis.util.js"
 import { Effect as E, pipe } from "effect"
 import type { FastifyInstance } from "fastify"
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod"
 import { z } from "zod"
+import type { Result } from "#types/result.type.js"
 
 const handler: FastifyPluginAsyncZod = async self => {
 	self.post(
@@ -26,7 +25,7 @@ const handler: FastifyPluginAsyncZod = async self => {
 				}
 			}
 		},
-		({ body }) =>
+		({ body }, reply) =>
 			pipe(
 				self.web3.verifyPersonalMsg(body.message, body.signature),
 				E.tap(address => validateMessage(self, address, body.message)),
@@ -36,7 +35,7 @@ const handler: FastifyPluginAsyncZod = async self => {
 					})
 				),
 				E.flatMap(user => self.sign(user)),
-				unwrapResult
+				reply.unwrapResult
 			)
 	)
 }

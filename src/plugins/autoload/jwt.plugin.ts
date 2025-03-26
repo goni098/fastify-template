@@ -1,6 +1,6 @@
-import type { User } from "@root/database/schemas/user.schema.js"
-import { JwtService } from "@root/services/jwt-service.js"
-import { RENEW_TOKEN_SECRET } from "@root/shared/env.js"
+import type { User } from "@database/schemas/user.schema.js"
+import { JwtService } from "@services/jwt-service.js"
+import { RENEW_TOKEN_SECRET } from "@shared/env.js"
 import { Effect as E, pipe } from "effect"
 import type { FastifyPluginAsync } from "fastify"
 

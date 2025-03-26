@@ -1,4 +1,4 @@
-import { DATABASE_URL } from "@root/shared/env.js"
+import { DATABASE_URL } from "@shared/env.js"
 import { drizzle } from "drizzle-orm/node-postgres"
 import { eventTable } from "./schemas/event.schema.js"
 import { renewTokenTable } from "./schemas/renew-token.schema.js"

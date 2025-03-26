@@ -1,6 +1,6 @@
 import { Duration, Effect as E, Schedule, flow, pipe } from "effect"
 import { constTrue, constant } from "effect/Function"
-import { establishConnection } from "./database/db.js"
+import { establishConnection } from "./database/config.js"
 import { EventRepository } from "./database/repositories/event.repository.js"
 import { SettingRepository } from "./database/repositories/setting.repository.js"
 import { EventScanner } from "./services/event-scanner.js"

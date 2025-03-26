@@ -1,11 +1,8 @@
-import type {
-	HttpExceptionResponse,
-	IntoResponse
-} from "@root/types/result.type.js"
 import { Boolean as B, pipe } from "effect"
 import { constVoid } from "effect/Function"
 import type { FastifyError, FastifyRequest } from "fastify"
 import { DateTime } from "luxon"
+import type { HttpExceptionResponse, IntoResponse } from "#types/result.type.js"
 
 export const intoError = (error: unknown) =>
 	error instanceof Error ? error : new Error(JSON.stringify(error, null, 2))

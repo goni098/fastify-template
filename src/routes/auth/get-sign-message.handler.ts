@@ -1,6 +1,5 @@
-import { suiAddress } from "@root/shared/parser.js"
-import { userSignMsgKey } from "@root/utils/redis.util.js"
-import { unwrapResult } from "@root/utils/result.util.js"
+import { suiAddress } from "@shared/parser.js"
+import { userSignMsgKey } from "@utils/redis.util.js"
 import { Effect as E, pipe } from "effect"
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod"
 import randomstr from "randomstring"
@@ -22,13 +21,13 @@ const handler: FastifyPluginAsyncZod = async self => {
 				}
 			}
 		},
-		({ query }) =>
+		({ query }, reply) =>
 			pipe(
 				randomstr.generate(),
 				E.succeed,
 				E.tap(msg => self.redis.set(userSignMsgKey(query.address), msg, 300)),
 				E.map(message => ({ message })),
-				unwrapResult
+				reply.unwrapResult
 			)
 	)
 }

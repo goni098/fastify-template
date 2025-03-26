@@ -49,6 +49,10 @@ declare module "fastify" {
 	interface FastifyRequest {
 		claims: Claims
 	}
+
+	interface FastifyReply {
+		unwrapResult: <A, E>(result: Result<A, E>) => Promise<A>
+	}
 }
 
 const errorHandler = (

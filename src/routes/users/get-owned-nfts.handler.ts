@@ -1,14 +1,13 @@
-import { authPlg } from "@root/plugins/auth.plugin.js"
-import { Web3Client } from "@root/services/web3-client.js"
-import { SECURITY_TAG } from "@root/shared/const.js"
-import { numberic, optionalStr } from "@root/shared/parser.js"
-import { unwrapResult } from "@root/utils/result.util.js"
+import { authPlugin } from "@plugins/auth.plugin.js"
+import { Web3Client } from "@services/web3-client.js"
+import { SECURITY_TAG } from "@shared/const.js"
+import { numberic, optionalStr } from "@shared/parser.js"
 import { pipe } from "effect"
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod"
 import { z } from "zod"
 
 const handler: FastifyPluginAsyncZod = async self => {
-	self.register(authPlg).get(
+	self.register(authPlugin).get(
 		"/nfts",
 		{
 			schema: {
@@ -28,7 +27,7 @@ const handler: FastifyPluginAsyncZod = async self => {
 				// }
 			}
 		},
-		({ claims, query }) =>
+		({ claims, query }, reply) =>
 			pipe(
 				self.web3.getOwnedObject({
 					options: {
@@ -42,7 +41,7 @@ const handler: FastifyPluginAsyncZod = async self => {
 					limit: query.limit,
 					cursor: query.cursor
 				}),
-				unwrapResult
+				reply.unwrapResult
 			)
 	)
 }

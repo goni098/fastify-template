@@ -1,12 +1,11 @@
-import { userSelectSchema } from "@root/database/schemas/user.schema.js"
-import { authPlg } from "@root/plugins/auth.plugin.js"
-import { SECURITY_TAG } from "@root/shared/const.js"
-import { unwrapResult } from "@root/utils/result.util.js"
+import { userSelectSchema } from "@database/schemas/user.schema.js"
+import { authPlugin } from "@plugins/auth.plugin.js"
+import { SECURITY_TAG } from "@shared/const.js"
 import { pipe } from "effect"
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod"
 
 const handler: FastifyPluginAsyncZod = async self => {
-	self.register(authPlg).get(
+	self.register(authPlugin).get(
 		"/me",
 		{
 			schema: {
@@ -17,8 +16,8 @@ const handler: FastifyPluginAsyncZod = async self => {
 				}
 			}
 		},
-		({ claims }) =>
-			pipe(self.repositories.user.findById(claims.id), unwrapResult)
+		({ claims }, reply) =>
+			pipe(self.repositories.user.findById(claims.id), reply.unwrapResult)
 	)
 }
 

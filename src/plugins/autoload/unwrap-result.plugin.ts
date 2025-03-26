@@ -1,8 +1,8 @@
-import { Web3Client } from "@services/web3-client.js"
+import { unwrapResult } from "@utils/result.util.js"
 import type { FastifyPluginAsync } from "fastify"
 
 const plugin: FastifyPluginAsync = async self => {
-	self.decorate("web3", new Web3Client())
+	self.decorateReply("unwrapResult", unwrapResult)
 }
 
 export default plugin

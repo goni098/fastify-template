@@ -3,7 +3,14 @@
 	"jsc": {
 		"baseUrl": "./",
 		"paths": {
-			"@root/*": ["src/*"]
+			"@database/*": ["src/database/*"],
+			"@exceptions/*": ["src/exceptions/*"],
+			"@plugins/*": ["src/plugins/*"],
+			"@routes/*": ["src/routes/*"],
+			"@services/*": ["src/services/*"],
+			"@shared/*": ["src/shared/*"],
+			"#types/*": ["src/types/*"],
+			"@utils/*": ["src/utils/*"]
 		},
 		"parser": {
 			"syntax": "typescript",
@@ -11,9 +18,9 @@
 			"dynamicImport": false,
 			"decorators": false
 		},
-		"target": "es2022"
+		"target": "es2024"
 	},
 	"module": {
-		"type": "es6"
+		"type": "nodenext"
 	}
 }
