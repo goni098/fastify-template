@@ -1,10 +1,11 @@
-import { bigserial, pgTable, varchar } from "drizzle-orm/pg-core"
+import { pgTable, varchar } from "drizzle-orm/pg-core"
 import { createInsertSchema, createSelectSchema } from "drizzle-zod"
 import type { z } from "zod"
+import { baseColumns } from "./_base.schema.js"
 
 export const userTable = pgTable("user", {
-	id: bigserial({ mode: "number" }).primaryKey().notNull(),
-	address: varchar().notNull().unique()
+	address: varchar().notNull().unique(),
+	...baseColumns
 })
 
 export const userSelectSchema = createSelectSchema(userTable)

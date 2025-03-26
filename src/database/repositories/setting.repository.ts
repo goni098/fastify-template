@@ -1,5 +1,5 @@
 import type { EventId } from "@mysten/sui/client"
-import { DatabaseException } from "@root/exceptions/database.ex.js"
+import type { DatabaseException } from "@root/exceptions/database.ex.js"
 import { NoRecordUpdatedException } from "@root/exceptions/no-record-updated.ex.js"
 import type { Result } from "@root/types/result.type.js"
 import { eq } from "drizzle-orm"
@@ -12,49 +12,27 @@ import {
 	pipe
 } from "effect"
 import { constant } from "effect/Function"
-import type { Db } from "../db.js"
 import { settingTable } from "../schemas/setting.schema.js"
+import { BaseRepository } from "./_base.repository.js"
 
 export type Setting = "lastest_event_seq" | "lastest_event_tx_didest"
 
 export type EventCursor = EventId
 
-export class SettingRepository {
-	constructor(private db: Db) {}
-
+export class SettingRepository extends BaseRepository(settingTable) {
 	get(key: Setting): Result<O.Option<string>, DatabaseException> {
-		return E.tryPromise({
-			try: () =>
-				this.db.query.setting.findFirst({
-					where: eq(settingTable.key, key),
-					columns: { value: true }
-				}),
-			catch: error => new DatabaseException({ error })
-		}).pipe(
-			E.map(
-				flow(
-					O.fromNullable,
-					O.map(({ value }) => value)
-				)
-			)
+		return pipe(
+			this.findFirstBy(eq(settingTable.key, key), {
+				value: settingTable.value
+			}),
+			E.map(record => O.some(record.value)),
+			E.catchAll(() => E.succeed(O.none<string>()))
 		)
 	}
 
 	set(key: Setting, value: string): Result<string, DatabaseException> {
-		return E.tryPromise({
-			try: () =>
-				this.db
-					.update(settingTable)
-					.set({ value })
-					.where(eq(settingTable.key, key)),
-			catch: error => new DatabaseException({ error })
-		}).pipe(
-			E.flatMap(res =>
-				E.tryPromise({
-					try: () => this.db.insert(settingTable).values({ key, value }),
-					catch: error => new DatabaseException({ error })
-				}).pipe(E.when(() => res.rowCount === 0))
-			),
+		return pipe(
+			this.upsert(eq(settingTable.key, key), { key, value }),
 			E.as(value)
 		)
 	}
@@ -64,22 +42,18 @@ export class SettingRepository {
 		txDigest
 	}: EventId): Result<void, DatabaseException | NoRecordUpdatedException> {
 		return pipe(
-			E.tryPromise({
-				try: () =>
-					this.db.transaction(tx =>
-						Promise.all([
-							tx
-								.update(settingTable)
-								.set({ key: "lastest_event_seq", value: eventSeq })
-								.where(eq(settingTable.key, "lastest_event_seq")),
-							tx
-								.update(settingTable)
-								.set({ key: "lastest_event_tx_didest", value: txDigest })
-								.where(eq(settingTable.key, "lastest_event_tx_didest"))
-						])
-					),
-				catch: error => new DatabaseException({ error })
-			}),
+			this.$transaction(tx =>
+				Promise.all([
+					tx
+						.update(settingTable)
+						.set({ key: "lastest_event_seq", value: eventSeq })
+						.where(eq(settingTable.key, "lastest_event_seq")),
+					tx
+						.update(settingTable)
+						.set({ key: "lastest_event_tx_didest", value: txDigest })
+						.where(eq(settingTable.key, "lastest_event_tx_didest"))
+				])
+			),
 			E.flatMap(
 				flow(
 					A.every(result => Number(result.rowCount) > 0),
