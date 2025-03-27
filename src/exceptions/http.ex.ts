@@ -1,5 +1,5 @@
 import { Data, Effect as E } from "effect"
-import type { HttpExceptionResponse, IntoResponse } from "#types/result.type.js"
+import type { HttpExceptionResponse, IntoResponse } from "#types/result.type"
 
 export class HttpException
 	extends Data.TaggedError("HttpException")<{

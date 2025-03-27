@@ -1,5 +1,5 @@
-import { suiAddress } from "@shared/parser.js"
-import { userSignMsgKey } from "@utils/redis.util.js"
+import { suiAddress } from "@shared/parser"
+import { userSignMsgKey } from "@utils/redis.util"
 import { Effect as E, pipe } from "effect"
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod"
 import randomstr from "randomstring"

@@ -1,5 +1,5 @@
-import { type CreateEventInput, eventTable } from "../schemas/event.schema.js"
-import { BaseRepository } from "./_base.repository.js"
+import { type CreateEventInput, eventTable } from "../schemas/event.schema"
+import { BaseRepository } from "./_base.repository"
 
 export class EventRepository extends BaseRepository(eventTable) {
 	save(data: CreateEventInput) {

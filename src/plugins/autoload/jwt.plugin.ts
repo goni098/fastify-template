@@ -1,8 +1,9 @@
-import type { User } from "@database/schemas/user.schema.js"
-import { JwtService } from "@services/jwt-service.js"
-import { RENEW_TOKEN_SECRET } from "@shared/env.js"
+import type { User } from "@database/schemas/user.schema"
+import { JwtService } from "@services/jwt-service"
+import { RENEW_TOKEN_SECRET } from "@shared/env"
 import { Effect as E, pipe } from "effect"
 import type { FastifyPluginAsync } from "fastify"
+import fastifyPlugin from "fastify-plugin"
 
 export interface Tokens {
 	accessToken: string
@@ -29,4 +30,4 @@ const plugin: FastifyPluginAsync = async self => {
 	)
 }
 
-export default plugin
+export const jwtPlugin = fastifyPlugin(plugin)

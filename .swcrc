@@ -18,9 +18,9 @@
 			"dynamicImport": false,
 			"decorators": false
 		},
-		"target": "es2024"
+		"target": "esnext"
 	},
 	"module": {
-		"type": "nodenext"
+		"type": "commonjs"
 	}
 }

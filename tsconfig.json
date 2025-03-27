@@ -1,13 +1,13 @@
 {
 	"compilerOptions": {
-		"lib": ["ES2024"],
-		"target": "ES2024",
+		"lib": ["ESNext"],
+		"target": "ESNext",
 		"module": "NodeNext",
 		"moduleResolution": "nodenext",
 
 		"esModuleInterop": true,
 		"isolatedModules": true,
-		"verbatimModuleSyntax": true,
+		// "verbatimModuleSyntax": true,
 		"useDefineForClassFields": true,
 
 		"sourceMap": true,

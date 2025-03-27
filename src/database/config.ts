@@ -1,9 +1,9 @@
-import { DATABASE_URL } from "@shared/env.js"
+import { DATABASE_URL } from "@shared/env"
 import { drizzle } from "drizzle-orm/node-postgres"
-import { eventTable } from "./schemas/event.schema.js"
-import { renewTokenTable } from "./schemas/renew-token.schema.js"
-import { settingTable } from "./schemas/setting.schema.js"
-import { userTable } from "./schemas/user.schema.js"
+import { eventTable } from "./schemas/event.schema"
+import { renewTokenTable } from "./schemas/renew-token.schema"
+import { settingTable } from "./schemas/setting.schema"
+import { userTable } from "./schemas/user.schema"
 
 export type Db = ReturnType<typeof establishConnection>
 

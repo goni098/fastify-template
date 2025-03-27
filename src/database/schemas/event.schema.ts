@@ -1,7 +1,7 @@
 import { json, pgTable, unique, varchar } from "drizzle-orm/pg-core"
 import { createInsertSchema } from "drizzle-zod"
 import type { z } from "zod"
-import { baseColumns } from "./_base.schema.js"
+import { baseColumns } from "./_base.schema"
 
 export const eventTable = pgTable(
 	"event",

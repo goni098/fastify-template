@@ -1,6 +1,6 @@
-import { userSelectSchema } from "@database/schemas/user.schema.js"
-import { authPlugin } from "@plugins/auth.plugin.js"
-import { SECURITY_TAG } from "@shared/const.js"
+import { userSelectSchema } from "@database/schemas/user.schema"
+import { authPlugin } from "@plugins/auth.plugin"
+import { SECURITY_TAG } from "@shared/const"
 import { pipe } from "effect"
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod"
 

@@ -1,10 +1,11 @@
-import { type Db, establishConnection } from "@database/config.js"
-import { EventRepository } from "@database/repositories/event.repository.js"
-import { RenewTokenRepository } from "@database/repositories/renew-token.repository.js"
-import { SettingRepository } from "@database/repositories/setting.repository.js"
-import { UserRepository } from "@database/repositories/user.repository.js"
+import { type Db, establishConnection } from "@database/config"
+import { EventRepository } from "@database/repositories/event.repository"
+import { RenewTokenRepository } from "@database/repositories/renew-token.repository"
+import { SettingRepository } from "@database/repositories/setting.repository"
+import { UserRepository } from "@database/repositories/user.repository"
 import { pipe } from "effect"
 import type { FastifyPluginAsync } from "fastify"
+import fastifyPlugin from "fastify-plugin"
 
 interface Repositories {
 	user: UserRepository
@@ -31,4 +32,4 @@ const plugin: FastifyPluginAsync = async self => {
 	)
 }
 
-export default plugin
+export const dbPlugin = fastifyPlugin(plugin)

@@ -1,9 +1,9 @@
-import { JwtSignException } from "@exceptions/jwt-sign.ex.js"
-import { JwtVerifyException } from "@exceptions/jwt-verify.ex.js"
+import { JwtSignException } from "@exceptions/jwt-sign.ex"
+import { JwtVerifyException } from "@exceptions/jwt-verify.ex"
 import { Boolean as B, Effect as E, pipe } from "effect"
 import jwt from "jsonwebtoken"
-import type { Result } from "#types/result.type.js"
-import { ACCESS_TOKEN_SECRET } from "../shared/env.js"
+import type { Result } from "#types/result.type"
+import { ACCESS_TOKEN_SECRET } from "../shared/env"
 
 export type SignPayload = { id: number; address: string } | { sub: number }
 

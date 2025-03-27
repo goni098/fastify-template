@@ -1,6 +1,6 @@
-import { fromUnknownToResponse } from "@utils/error.util.js"
+import { fromUnknownToResponse } from "@utils/error.util"
 import { Data } from "effect"
-import type { IntoResponse } from "#types/result.type.js"
+import type { IntoResponse } from "#types/result.type"
 
 export class JwtSignException
 	extends Data.TaggedError("JwtSignException")<{

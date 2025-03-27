@@ -1,11 +1,11 @@
-import { HttpException } from "@exceptions/http.ex.js"
-import type { RedisException } from "@exceptions/redis.ex.js"
-import { userSignMsgKey } from "@utils/redis.util.js"
+import { HttpException } from "@exceptions/http.ex"
+import type { RedisException } from "@exceptions/redis.ex"
+import { userSignMsgKey } from "@utils/redis.util"
 import { Effect as E, pipe } from "effect"
 import type { FastifyInstance } from "fastify"
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod"
 import { z } from "zod"
-import type { Result } from "#types/result.type.js"
+import type { Result } from "#types/result.type"
 
 const handler: FastifyPluginAsyncZod = async self => {
 	self.post(

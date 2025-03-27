@@ -1,10 +1,10 @@
-import type { DatabaseException } from "@exceptions/database.ex.js"
+import type { DatabaseException } from "@exceptions/database.ex"
 import { eq } from "drizzle-orm"
 import { Effect as E } from "effect"
 import type { NoSuchElementException } from "effect/Cause"
-import type { Result } from "#types/result.type.js"
-import { renewTokenTable } from "../schemas/renew-token.schema.js"
-import { BaseRepository } from "./_base.repository.js"
+import type { Result } from "#types/result.type"
+import { renewTokenTable } from "../schemas/renew-token.schema"
+import { BaseRepository } from "./_base.repository"
 
 export class RenewTokenRepository extends BaseRepository(renewTokenTable) {
 	findTokenByUserId(

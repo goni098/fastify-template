@@ -1,6 +1,6 @@
-import { HttpException } from "@exceptions/http.ex.js"
+import { HttpException } from "@exceptions/http.ex"
 import {} from "@mysten/sui/utils"
-import { RENEW_TOKEN_SECRET } from "@shared/env.js"
+import { RENEW_TOKEN_SECRET } from "@shared/env"
 import { Effect as E, pipe } from "effect"
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod"
 import { z } from "zod"

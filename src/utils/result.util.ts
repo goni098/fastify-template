@@ -1,5 +1,5 @@
 import { Effect as E, Either, identity, pipe } from "effect"
-import type { Result } from "#types/result.type.js"
+import type { Result } from "#types/result.type"
 
 export const unwrapResult = <A, E>(result: Result<A, E>) =>
 	pipe(result, E.either, E.runPromise).then(

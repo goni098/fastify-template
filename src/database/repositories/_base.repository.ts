@@ -1,5 +1,5 @@
-import { DatabaseException } from "@exceptions/database.ex.js"
-import { NoRecordUpdatedException } from "@exceptions/no-record-updated.ex.js"
+import { DatabaseException } from "@exceptions/database.ex"
+import { NoRecordUpdatedException } from "@exceptions/no-record-updated.ex"
 import {
 	type InferInsertModel,
 	type InferSelectModel,
@@ -20,9 +20,9 @@ import { Array as A, Boolean as B, Effect as E, pipe } from "effect"
 import type { NoSuchElementException } from "effect/Cause"
 import type { QueryResult } from "pg"
 import type { z } from "zod"
-import type { Result } from "#types/result.type.js"
-import type { Db } from "../config.js"
-import type { BaseTable } from "../schemas/_base.schema.js"
+import type { Result } from "#types/result.type"
+import type { Db } from "../config"
+import type { BaseTable } from "../schemas/_base.schema"
 
 type Model<T extends BaseTable> = InferSelectModel<T>
 

@@ -1,5 +1,5 @@
-import { SuiClientException } from "@exceptions/sui-client.ex.js"
-import { VerifySigException } from "@exceptions/verify-sig.ex.js"
+import { SuiClientException } from "@exceptions/sui-client.ex"
+import { VerifySigException } from "@exceptions/verify-sig.ex"
 import {
 	type EventId,
 	type GetOwnedObjectsParams,
@@ -10,9 +10,9 @@ import {
 	getFullnodeUrl
 } from "@mysten/sui/client"
 import { verifyPersonalMessageSignature } from "@mysten/sui/verify"
-import { intoError, retrieveErrorMessage } from "@utils/error.util.js"
+import { intoError, retrieveErrorMessage } from "@utils/error.util"
 import { Array as A, Effect as E, flow, pipe } from "effect"
-import type { Result } from "#types/result.type.js"
+import type { Result } from "#types/result.type"
 
 type SuiAddress = string
 

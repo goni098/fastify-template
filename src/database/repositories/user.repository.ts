@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm"
-import { type CreateUserInput, userTable } from "../schemas/user.schema.js"
-import { BaseRepository } from "./_base.repository.js"
+import { type CreateUserInput, userTable } from "../schemas/user.schema"
+import { BaseRepository } from "./_base.repository"
 
 export class UserRepository extends BaseRepository(userTable) {
 	createIfNotExist(data: CreateUserInput) {

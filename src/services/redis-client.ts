@@ -1,4 +1,4 @@
-import { RedisException } from "@exceptions/redis.ex.js"
+import { RedisException } from "@exceptions/redis.ex"
 import { Effect as E } from "effect"
 import { Redis } from "ioredis"
 

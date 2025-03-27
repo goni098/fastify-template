@@ -1,8 +1,8 @@
-import { HttpException } from "@exceptions/http.ex.js"
+import { HttpException } from "@exceptions/http.ex"
 import { Array as A, Effect as E, pipe } from "effect"
 import type { FastifyPluginAsync, FastifyRequest } from "fastify"
 import fastifyPlugin from "fastify-plugin"
-import type { Result } from "#types/result.type.js"
+import type { Result } from "#types/result.type"
 
 export type Claims = {
 	id: number

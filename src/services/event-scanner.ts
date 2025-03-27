@@ -1,15 +1,15 @@
-import type { EventRepository } from "@database/repositories/event.repository.js"
+import type { EventRepository } from "@database/repositories/event.repository"
 import type {
 	EventCursor,
 	SettingRepository
-} from "@database/repositories/setting.repository.js"
-import type { DatabaseException } from "@exceptions/database.ex.js"
-import type { NoRecordUpdatedException } from "@exceptions/no-record-updated.ex.js"
-import type { SuiClientException } from "@exceptions/sui-client.ex.js"
+} from "@database/repositories/setting.repository"
+import type { DatabaseException } from "@exceptions/database.ex"
+import type { NoRecordUpdatedException } from "@exceptions/no-record-updated.ex"
+import type { SuiClientException } from "@exceptions/sui-client.ex"
 import type { PaginatedEvents, SuiEvent } from "@mysten/sui/client"
 import { Chunk as C, Duration, Effect as E, pipe } from "effect"
-import type { Result } from "#types/result.type.js"
-import { Web3Client } from "./web3-client.js"
+import type { Result } from "#types/result.type"
+import { Web3Client } from "./web3-client"
 
 export class EventScanner {
 	constructor(

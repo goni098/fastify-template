@@ -1,10 +1,12 @@
-import { dirname, join } from "node:path"
-import { fileURLToPath } from "node:url"
-import autoLoad from "@fastify/autoload"
 import cors from "@fastify/cors"
 import fastifySensible from "@fastify/sensible"
 import fastifySwagger from "@fastify/swagger"
 import fastifySwaggerUi from "@fastify/swagger-ui"
+import { dbPlugin } from "@plugins/autoload/database.plugin"
+import { redisPlugin } from "@plugins/autoload/redis.plugin"
+import { unwrapResultPlugin } from "@plugins/autoload/unwrap-result.plugin"
+import { web3Plugin } from "@plugins/autoload/web3.plugin"
+import { authRouter, usersRouter } from "@routes/index"
 import { Match as M, Option as O, pipe } from "effect"
 import { isNoSuchElementException } from "effect/Cause"
 import fastify, { type FastifyReply, type FastifyRequest } from "fastify"
@@ -13,24 +15,20 @@ import {
 	serializerCompiler,
 	validatorCompiler
 } from "fastify-type-provider-zod"
-import type { EventRepository } from "./database/repositories/event.repository.js"
-import type { RenewTokenRepository } from "./database/repositories/renew-token.repository.js"
-import type { SettingRepository } from "./database/repositories/setting.repository.js"
-import type { UserRepository } from "./database/repositories/user.repository.js"
-import type { User } from "./database/schemas/user.schema.js"
-import type { DatabaseException } from "./exceptions/database.ex.js"
-import type { JwtSignException } from "./exceptions/jwt-sign.ex.js"
-import type { Claims } from "./plugins/auth.plugin.js"
-import type { Tokens } from "./plugins/autoload/jwt.plugin.js"
-import type { JwtService } from "./services/jwt-service.js"
-import type { RedisClient } from "./services/redis-client.js"
-import type { Web3Client } from "./services/web3-client.js"
-import type { Result } from "./types/result.type.js"
-import {
-	canIntoResponse,
-	isFastifyError,
-	traceError
-} from "./utils/error.util.js"
+import type { EventRepository } from "./database/repositories/event.repository"
+import type { RenewTokenRepository } from "./database/repositories/renew-token.repository"
+import type { SettingRepository } from "./database/repositories/setting.repository"
+import type { UserRepository } from "./database/repositories/user.repository"
+import type { User } from "./database/schemas/user.schema"
+import type { DatabaseException } from "./exceptions/database.ex"
+import type { JwtSignException } from "./exceptions/jwt-sign.ex"
+import type { Claims } from "./plugins/auth.plugin"
+import { type Tokens, jwtPlugin } from "./plugins/autoload/jwt.plugin"
+import type { JwtService } from "./services/jwt-service"
+import type { RedisClient } from "./services/redis-client"
+import type { Web3Client } from "./services/web3-client"
+import type { Result } from "./types/result.type"
+import { canIntoResponse, isFastifyError, traceError } from "./utils/error.util"
 
 declare module "fastify" {
 	interface FastifyInstance {
@@ -77,40 +75,37 @@ const errorHandler = (
 	)
 
 const server = () =>
-	pipe(import.meta.url, fileURLToPath, dirname, __dirname =>
-		fastify()
-			.setValidatorCompiler(validatorCompiler)
-			.setSerializerCompiler(serializerCompiler)
-			.setErrorHandler(errorHandler)
-			.register(cors)
-			.register(fastifySensible)
-			.register(fastifySwagger, {
-				openapi: {
-					info: { title: "FEFT", version: "1.0.0" },
-					components: {
-						securitySchemes: {
-							bearerAuth: {
-								type: "http",
-								scheme: "bearer",
-								bearerFormat: "JWT"
-							}
+	fastify()
+		.setValidatorCompiler(validatorCompiler)
+		.setSerializerCompiler(serializerCompiler)
+		.setErrorHandler(errorHandler)
+		.register(cors)
+		.register(fastifySensible)
+		.register(fastifySwagger, {
+			openapi: {
+				info: { title: "FEFT", version: "1.0.0" },
+				components: {
+					securitySchemes: {
+						bearerAuth: {
+							type: "http",
+							scheme: "bearer",
+							bearerFormat: "JWT"
 						}
 					}
-				},
-				transform: jsonSchemaTransform
-			})
-			.register(fastifySwaggerUi, {
-				routePrefix: "/docs"
-			})
-			.register(autoLoad, {
-				dir: join(__dirname, "plugins", "autoload"),
-				encapsulate: false
-			})
-			.register(autoLoad, {
-				dir: join(__dirname, "routes"),
-				matchFilter: path => path.endsWith("handler.js")
-			})
-	)
+				}
+			},
+			transform: jsonSchemaTransform
+		})
+		.register(fastifySwaggerUi, {
+			routePrefix: "/docs"
+		})
+		.register(dbPlugin)
+		.register(jwtPlugin)
+		.register(redisPlugin)
+		.register(unwrapResultPlugin)
+		.register(web3Plugin)
+		.register(authRouter, { prefix: "auth" })
+		.register(usersRouter, { prefix: "users" })
 
 function main(): void {
 	server().listen({ port: 9098 }, (err, address) =>
