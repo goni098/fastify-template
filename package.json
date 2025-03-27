@@ -8,7 +8,8 @@
 		"lint": "biome lint --error-on-warnings ./src",
 		"format": "biome format ./src --fix",
 		"clean": "biome check ./src --write",
-		"release": "tsc --noEmit && rm -rf dist && swc --strip-leading-paths -d dist src",
+		"release": "tsc --noEmit && rm -rf dist && pnpm run build",
+    "build": "swc --strip-leading-paths -d dist src",
 		"db:push": "pnpm release && drizzle-kit push",
 		"start:console": "pnpm release && node --env-file=.env dist/console.js"
 	},
