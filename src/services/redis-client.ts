@@ -6,7 +6,7 @@ export class RedisClient {
 	private client: Redis
 
 	constructor() {
-		this.client = new Redis()
+		this.client = new Redis("redis://redis:6379")
 	}
 
 	get(key: string) {
