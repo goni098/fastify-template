@@ -1,7 +1,7 @@
 {
 	"compilerOptions": {
-		"lib": ["ES2024"],
-		"target": "ES2024",
+		"lib": ["ESNext"],
+		"target": "ESNext",
 		"module": "NodeNext",
 		"moduleResolution": "nodenext",
 
@@ -35,6 +35,6 @@
 		"noFallthroughCasesInSwitch": true,
 		"allowUnreachableCode": false
 	},
-	"include": ["src/**/*.ts"],
+	"include": ["src/**/*.ts", "test/**/*.ts", "test-helper/**/*.ts"],
 	"exclude": ["node_modules"]
 }
