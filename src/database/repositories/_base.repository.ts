@@ -33,7 +33,16 @@ type UpdateParams<T extends BaseTable> = z.infer<
 	ReturnType<typeof createUpdateSchema<T>>
 >
 
-type Select<S> = SelectResult<S, "single", Record<string, JoinNullability>>
+type SelectReturns<Selection> = SelectResult<
+	Selection,
+	"single",
+	Record<string, JoinNullability>
+>
+
+type QueryReturns<
+	Table extends BaseTable,
+	Selection
+> = Selection extends undefined ? Model<Table> : SelectReturns<Selection>
 
 type TxParams<P> = (
 	tx: Parameters<Parameters<Db["transaction"]>[0]>[0]
@@ -48,15 +57,13 @@ type FindOption<S> = {
 }
 
 export const BaseRepository = <T extends BaseTable>(table: T) => {
-	type QueryReturns<S> = S extends undefined ? Model<T> : Select<S>
-
 	return class Base {
 		constructor(protected db: Db) {}
 
 		findById<S extends SelectedFields | undefined = undefined>(
 			id: number,
 			select?: S
-		): Result<QueryReturns<S>, DatabaseException | NoSuchElementException> {
+		): Result<QueryReturns<T, S>, DatabaseException | NoSuchElementException> {
 			return this.findFirst(eq(table.id, id), select)
 		}
 
@@ -79,7 +86,7 @@ export const BaseRepository = <T extends BaseTable>(table: T) => {
 
 		protected find<S extends SelectedFields | undefined>(
 			opts: FindOption<S> = {}
-		): Result<QueryReturns<S>[], DatabaseException> {
+		): Result<QueryReturns<T, S>[], DatabaseException> {
 			return pipe(
 				this.db.select(opts.select as SelectedFields).from(table as BaseTable),
 				E.succeed,
@@ -100,7 +107,7 @@ export const BaseRepository = <T extends BaseTable>(table: T) => {
 		protected findFirst<S extends SelectedFields | undefined = undefined>(
 			filter: SQL,
 			select?: S
-		): Result<QueryReturns<S>, DatabaseException | NoSuchElementException> {
+		): Result<QueryReturns<T, S>, DatabaseException | NoSuchElementException> {
 			return pipe(this.find({ filter, select }), E.flatMap(A.get(0)))
 		}
 
