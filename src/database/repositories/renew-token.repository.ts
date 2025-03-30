@@ -10,7 +10,7 @@ export class RenewTokenRepository extends BaseRepository(renewTokenTable) {
 	findTokenByUserId(
 		userId: number
 	): Result<string, DatabaseException | NoSuchElementException> {
-		return this.findFirstBy(eq(renewTokenTable.userId, userId)).pipe(
+		return this.findFirst(eq(renewTokenTable.userId, userId)).pipe(
 			E.map(record => record.token)
 		)
 	}

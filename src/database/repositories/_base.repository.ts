@@ -4,6 +4,7 @@ import {
 	type InferInsertModel,
 	type InferSelectModel,
 	type SQL,
+	count,
 	eq
 } from "drizzle-orm"
 import type {
@@ -26,9 +27,9 @@ import type { BaseTable } from "../schemas/_base.schema.js"
 
 type Model<T extends BaseTable> = InferSelectModel<T>
 
-type CreateInput<T extends BaseTable> = InferInsertModel<T>
+type InsertParams<T extends BaseTable> = InferInsertModel<T>
 
-type UpdateInput<T extends BaseTable> = z.infer<
+type UpdateParams<T extends BaseTable> = z.infer<
 	ReturnType<typeof createUpdateSchema<T>>
 >
 
@@ -46,12 +47,35 @@ type FindOption<S> = {
 	offset?: number
 }
 
-// SelectedFields
 export const BaseRepository = <T extends BaseTable>(table: T) => {
 	type QueryReturns<S> = S extends undefined ? Model<T> : Select<S>
 
 	return class Base {
 		constructor(protected db: Db) {}
+
+		findById<S extends SelectedFields | undefined = undefined>(
+			id: number,
+			select?: S
+		): Result<QueryReturns<S>, DatabaseException | NoSuchElementException> {
+			return this.findFirst(eq(table.id, id), select)
+		}
+
+		protected $count(filter: SQL): Result<number, DatabaseException> {
+			return pipe(
+				this.$aggregate(filter, count(table.id)),
+				E.catchTag("NoSuchElementException", () => E.succeed(0))
+			)
+		}
+
+		protected $aggregate<Agg>(
+			filter: SQL,
+			select: SQL<Agg>
+		): Result<Agg, DatabaseException | NoSuchElementException> {
+			return pipe(
+				this.findFirst(filter, { val: select }),
+				E.map(record => record.val)
+			)
+		}
 
 		protected find<S extends SelectedFields | undefined>(
 			opts: FindOption<S> = {}
@@ -73,36 +97,32 @@ export const BaseRepository = <T extends BaseTable>(table: T) => {
 			)
 		}
 
-		protected findFirstBy<S extends SelectedFields | undefined = undefined>(
+		protected findFirst<S extends SelectedFields | undefined = undefined>(
 			filter: SQL,
 			select?: S
 		): Result<QueryReturns<S>, DatabaseException | NoSuchElementException> {
 			return pipe(this.find({ filter, select }), E.flatMap(A.get(0)))
 		}
 
-		findById<S extends SelectedFields | undefined = undefined>(
-			id: number,
-			select?: S
-		): Result<QueryReturns<S>, DatabaseException | NoSuchElementException> {
-			return this.findFirstBy(eq(table.id, id), select)
-		}
-
-		$countBy(filter: SQL): Result<number, DatabaseException> {
-			return E.tryPromise({
-				catch: error => new DatabaseException({ error }),
-				try: () => this.db.$count(table, filter)
-			})
-		}
-
-		protected $transaction<P>(tx: TxParams<P>, config?: PgTransactionConfig) {
+		protected $transaction<P>(
+			tx: TxParams<P>,
+			config?: PgTransactionConfig
+		): Result<P, DatabaseException> {
 			return E.tryPromise({
 				try: () => this.db.transaction(tx, config),
 				catch: error => new DatabaseException({ error })
 			})
 		}
 
+		protected insert(params: InsertParams<T>): Result<void, DatabaseException> {
+			return E.tryPromise({
+				try: () => this.db.insert(table).values(params),
+				catch: error => new DatabaseException({ error })
+			}).pipe(E.asVoid)
+		}
+
 		protected insertOnConflictDoUpdate(
-			params: CreateInput<T>,
+			params: InsertParams<T>,
 			conflict?: IndexColumn | IndexColumn[]
 		): Result<void, DatabaseException> {
 			return E.tryPromise({
@@ -120,7 +140,7 @@ export const BaseRepository = <T extends BaseTable>(table: T) => {
 		}
 
 		protected insertOnConflictDoNothing(
-			params: CreateInput<T>,
+			params: InsertParams<T>,
 			conflict?: IndexColumn | IndexColumn[]
 		): Result<void, DatabaseException> {
 			return E.tryPromise({
@@ -137,7 +157,7 @@ export const BaseRepository = <T extends BaseTable>(table: T) => {
 		}
 
 		protected insertWithReturning(
-			params: CreateInput<T>
+			params: InsertParams<T>
 		): Result<Model<T>, DatabaseException> {
 			return pipe(
 				E.tryPromise({
@@ -156,10 +176,10 @@ export const BaseRepository = <T extends BaseTable>(table: T) => {
 
 		protected upsert(
 			filter: SQL,
-			params: CreateInput<T>
+			params: InsertParams<T>
 		): Result<Model<T>, DatabaseException> {
 			return pipe(
-				this.findFirstBy(filter),
+				this.findFirst(filter),
 				E.catchTag("NoSuchElementException", () =>
 					this.insertWithReturning(params)
 				)
@@ -168,7 +188,7 @@ export const BaseRepository = <T extends BaseTable>(table: T) => {
 
 		protected update(
 			filter: SQL,
-			params: UpdateInput<T>
+			params: UpdateParams<T>
 		): Result<QueryResult, NoRecordUpdatedException | DatabaseException> {
 			return pipe(
 				E.tryPromise({
@@ -181,7 +201,7 @@ export const BaseRepository = <T extends BaseTable>(table: T) => {
 
 		protected updateById(
 			id: number,
-			params: UpdateInput<T>
+			params: UpdateParams<T>
 		): Result<void, NoRecordUpdatedException | DatabaseException> {
 			return this.update(eq(table.id, id), params)
 		}
