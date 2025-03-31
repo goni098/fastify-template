@@ -82,8 +82,8 @@ interface UpdateParam<T extends BaseTable> {
 }
 
 interface AggregateParam<T> {
-	filter: SQL
 	target: SQL<T>
+	filter?: SQL
 }
 
 export const BaseRepository = <T extends BaseTable>(table: T) => {
@@ -100,7 +100,7 @@ export const BaseRepository = <T extends BaseTable>(table: T) => {
 			return this.findFirst({ filter: eq(table.id, id), select })
 		}
 
-		protected $count(filter: SQL): Result<number, DatabaseException> {
+		protected $count(filter?: SQL): Result<number, DatabaseException> {
 			return pipe(
 				this.$aggregate({ filter, target: count(table.id) }),
 				E.catchTag("NoSuchElementException", () => E.succeed(0))
@@ -115,12 +115,13 @@ export const BaseRepository = <T extends BaseTable>(table: T) => {
 			DatabaseException | NoSuchElementException
 		> {
 			return pipe(
-				this.findFirst({
+				this.find({
 					filter,
 					select: {
 						val: target
 					}
 				}),
+				E.flatMap(A.get(0)),
 				E.map(record => record.val)
 			)
 		}
