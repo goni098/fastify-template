@@ -56,7 +56,7 @@ export class Web3Client {
 		})
 	}
 
-	getOwnedObject(
+	getOwnedObjects(
 		params: GetOwnedObjectsParams
 	): Result<PaginatedObjectsResponse, SuiClientException> {
 		return E.tryPromise({

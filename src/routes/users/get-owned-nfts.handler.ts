@@ -29,7 +29,7 @@ const handler: FastifyPluginAsyncZod = async self => {
 		},
 		({ claims, query }, reply) =>
 			pipe(
-				self.web3.getOwnedObject({
+				self.web3.getOwnedObjects({
 					options: {
 						showContent: true,
 						showType: true
