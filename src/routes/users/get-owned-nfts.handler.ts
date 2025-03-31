@@ -15,7 +15,7 @@ const handler: FastifyPluginAsyncZod = async self => {
 				tags: ["users"],
 				querystring: z.object({
 					cursor: optionalStr(),
-					limit: numberic()
+					limit: numberic().pipe(z.number().max(50))
 				})
 				// response: {
 				// 	200: z.object({
