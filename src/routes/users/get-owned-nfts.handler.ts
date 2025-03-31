@@ -17,23 +17,12 @@ const handler: FastifyPluginAsyncZod = async self => {
 					cursor: optionalStr(),
 					limit: numberic().pipe(z.number().max(50))
 				})
-				// response: {
-				// 	200: z.object({
-				// 		id: z.string(),
-				// 		name: z.string(),
-				// 		description: z.string(),
-				// 		url: z.string()
-				// 	})
-				// }
 			}
 		},
 		({ claims, query }, reply) =>
 			pipe(
 				self.web3.getOwnedObjects({
-					options: {
-						showContent: true,
-						showType: true
-					},
+					options: { showContent: true, showType: true },
 					filter: {
 						StructType: `${Web3Client.PACKAGE_ID}::${Web3Client.VENDING_MACHINE_MODULE}::Nft`
 					},

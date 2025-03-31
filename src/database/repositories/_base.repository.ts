@@ -27,9 +27,9 @@ import type { BaseTable } from "../schemas/_base.schema.js"
 
 type Model<T extends BaseTable> = InferSelectModel<T>
 
-type InsertParams<T extends BaseTable> = InferInsertModel<T>
+type InsertData<T extends BaseTable> = InferInsertModel<T>
 
-type UpdateParams<T extends BaseTable> = z.infer<
+type UpdateData<T extends BaseTable> = z.infer<
 	ReturnType<typeof createUpdateSchema<T>>
 >
 
@@ -48,7 +48,7 @@ type TxParams<P> = (
 	tx: Parameters<Parameters<Db["transaction"]>[0]>[0]
 ) => Promise<P>
 
-type FindOption<S> = {
+interface FindOption<S> {
 	select?: S
 	filter?: SQL
 	sort?: SQL
@@ -56,30 +56,71 @@ type FindOption<S> = {
 	offset?: number
 }
 
+interface FindByIdParam<S> {
+	id: number
+	select?: S
+}
+
+interface FindFirstParam<S> {
+	filter: SQL
+	select?: S
+}
+
+interface InsertOnConflictParam<T extends BaseTable> {
+	data: InsertData<T>
+	conflict?: IndexColumn | IndexColumn[]
+}
+
+interface UpsertParam<T extends BaseTable> {
+	data: InsertData<T>
+	where: SQL
+}
+
+interface UpdateParam<T extends BaseTable> {
+	data: UpdateData<T>
+	where: SQL
+}
+
+interface AggregateParam<T> {
+	filter: SQL
+	target: SQL<T>
+}
+
 export const BaseRepository = <T extends BaseTable>(table: T) => {
 	return class Base {
 		constructor(protected db: Db) {}
 
-		findById<S extends SelectedFields | undefined = undefined>(
-			id: number,
-			select?: S
-		): Result<QueryReturns<T, S>, DatabaseException | NoSuchElementException> {
-			return this.findFirst(eq(table.id, id), select)
+		findById<S extends SelectedFields | undefined = undefined>({
+			id,
+			select
+		}: FindByIdParam<S>): Result<
+			QueryReturns<T, S>,
+			DatabaseException | NoSuchElementException
+		> {
+			return this.findFirst({ filter: eq(table.id, id), select })
 		}
 
 		protected $count(filter: SQL): Result<number, DatabaseException> {
 			return pipe(
-				this.$aggregate(filter, count(table.id)),
+				this.$aggregate({ filter, target: count(table.id) }),
 				E.catchTag("NoSuchElementException", () => E.succeed(0))
 			)
 		}
 
-		protected $aggregate<Agg>(
-			filter: SQL,
-			select: SQL<Agg>
-		): Result<Agg, DatabaseException | NoSuchElementException> {
+		protected $aggregate<Agg>({
+			filter,
+			target
+		}: AggregateParam<Agg>): Result<
+			Agg,
+			DatabaseException | NoSuchElementException
+		> {
 			return pipe(
-				this.findFirst(filter, { val: select }),
+				this.findFirst({
+					filter,
+					select: {
+						val: target
+					}
+				}),
 				E.map(record => record.val)
 			)
 		}
@@ -96,19 +137,32 @@ export const BaseRepository = <T extends BaseTable>(table: T) => {
 				E.map(query => (opts.offset ? query.offset(opts.offset) : query)),
 				E.flatMap(query =>
 					E.tryPromise({
-						// biome-ignore lint/suspicious/noExplicitAny:>
-						try: () => query.execute() as any,
+						try: () =>
+							query.execute() as unknown as Promise<QueryReturns<T, S>[]>,
 						catch: error => new DatabaseException({ error })
 					})
 				)
 			)
 		}
 
-		protected findFirst<S extends SelectedFields | undefined = undefined>(
-			filter: SQL,
-			select?: S
-		): Result<QueryReturns<T, S>, DatabaseException | NoSuchElementException> {
-			return pipe(this.find({ filter, select }), E.flatMap(A.get(0)))
+		protected findFirst<S extends SelectedFields | undefined = undefined>({
+			filter,
+			select
+		}: FindFirstParam<S>): Result<
+			QueryReturns<T, S>,
+			DatabaseException | NoSuchElementException
+		> {
+			return pipe(
+				E.tryPromise({
+					try: () =>
+						this.db
+							.select(select as SelectedFields)
+							.from(table as BaseTable)
+							.where(filter) as unknown as Promise<QueryReturns<T, S>[]>,
+					catch: error => new DatabaseException({ error })
+				}),
+				E.flatMap(A.get(0))
+			)
 		}
 
 		protected $transaction<P>(
@@ -121,41 +175,39 @@ export const BaseRepository = <T extends BaseTable>(table: T) => {
 			})
 		}
 
-		protected insert(params: InsertParams<T>): Result<void, DatabaseException> {
+		protected insert(params: InsertData<T>): Result<void, DatabaseException> {
 			return E.tryPromise({
 				try: () => this.db.insert(table).values(params),
 				catch: error => new DatabaseException({ error })
 			}).pipe(E.asVoid)
 		}
 
-		protected insertOnConflictDoUpdate(
-			params: InsertParams<T>,
-			conflict?: IndexColumn | IndexColumn[]
-		): Result<void, DatabaseException> {
+		protected insertOnConflictDoUpdate({
+			data,
+			conflict
+		}: InsertOnConflictParam<T>): Result<void, DatabaseException> {
 			return E.tryPromise({
 				try: () =>
 					this.db
 						.insert(table)
-						.values(params)
+						.values(data)
 						.onConflictDoUpdate({
-							// biome-ignore lint/suspicious/noExplicitAny:>
-							set: params as any,
+							set: data as unknown as UpdateData<T>,
 							target: conflict ?? table.id
 						}),
 				catch: error => new DatabaseException({ error })
 			}).pipe(E.asVoid)
 		}
 
-		protected insertOnConflictDoNothing(
-			params: InsertParams<T>,
-			conflict?: IndexColumn | IndexColumn[]
-		): Result<void, DatabaseException> {
+		protected insertOnConflictDoNothing({
+			data,
+			conflict
+		}: InsertOnConflictParam<T>): Result<void, DatabaseException> {
 			return E.tryPromise({
 				try: () =>
 					this.db
-						// biome-ignore lint/suspicious/noExplicitAny:>
-						.insert(table as any)
-						.values(params)
+						.insert(table as BaseTable)
+						.values(data)
 						.onConflictDoNothing({
 							target: conflict
 						}),
@@ -164,12 +216,12 @@ export const BaseRepository = <T extends BaseTable>(table: T) => {
 		}
 
 		protected insertWithReturning(
-			params: InsertParams<T>
+			data: InsertData<T>
 		): Result<Model<T>, DatabaseException> {
 			return pipe(
 				E.tryPromise({
 					try: () =>
-						this.db.insert(table).values(params).returning() as Promise<
+						this.db.insert(table).values(data).returning() as Promise<
 							Model<T>[]
 						>,
 					catch: error => new DatabaseException({ error })
@@ -181,36 +233,32 @@ export const BaseRepository = <T extends BaseTable>(table: T) => {
 			)
 		}
 
-		protected upsert(
-			filter: SQL,
-			params: InsertParams<T>
-		): Result<Model<T>, DatabaseException> {
+		protected upsert({
+			data,
+			where
+		}: UpsertParam<T>): Result<Model<T>, DatabaseException> {
 			return pipe(
-				this.findFirst(filter),
+				this.findFirst({ filter: where }),
 				E.catchTag("NoSuchElementException", () =>
-					this.insertWithReturning(params)
+					this.insertWithReturning(data)
 				)
 			)
 		}
 
-		protected update(
-			filter: SQL,
-			params: UpdateParams<T>
-		): Result<QueryResult, NoRecordUpdatedException | DatabaseException> {
+		protected update({
+			data,
+			where
+		}: UpdateParam<T>): Result<
+			QueryResult,
+			NoRecordUpdatedException | DatabaseException
+		> {
 			return pipe(
 				E.tryPromise({
-					try: () => this.db.update(table).set(params).where(filter),
+					try: () => this.db.update(table).set(data).where(where),
 					catch: error => new DatabaseException({ error })
 				}),
 				E.flatMap(veirfyUpdateResult)
 			)
-		}
-
-		protected updateById(
-			id: number,
-			params: UpdateParams<T>
-		): Result<void, NoRecordUpdatedException | DatabaseException> {
-			return this.update(eq(table.id, id), params)
 		}
 	}
 }
