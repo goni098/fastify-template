@@ -115,12 +115,7 @@ export const BaseRepository = <T extends BaseTable>(table: T) => {
 			DatabaseException | NoSuchElementException
 		> {
 			return pipe(
-				this.find({
-					filter,
-					select: {
-						val: target
-					}
-				}),
+				this.find({ filter, select: { val: target } }),
 				E.flatMap(A.get(0)),
 				E.map(record => record.val)
 			)

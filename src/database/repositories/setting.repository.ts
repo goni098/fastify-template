@@ -23,10 +23,7 @@ export class SettingRepository extends BaseRepository(settingTable) {
 	get(key: Setting): Result<O.Option<string>, DatabaseException> {
 		return pipe(
 			this.findFirst({
-				filter: eq(settingTable.key, key),
-				select: {
-					value: settingTable.value
-				}
+				filter: eq(settingTable.key, key)
 			}),
 			E.map(record => O.some(record.value)),
 			E.catchTag("NoSuchElementException", () => E.succeed(O.none<string>()))

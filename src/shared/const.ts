@@ -1,5 +1,1 @@
-export const SECURITY_TAG = [
-	{
-		bearerAuth: []
-	}
-]
+export const SECURITY_TAG = [{ bearerAuth: [] }]

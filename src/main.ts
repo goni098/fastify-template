@@ -88,11 +88,7 @@ const server = (dirname: string) =>
 				info: { title: "FEFT", version: "1.0.0" },
 				components: {
 					securitySchemes: {
-						bearerAuth: {
-							type: "http",
-							scheme: "bearer",
-							bearerFormat: "JWT"
-						}
+						bearerAuth: { type: "http", scheme: "bearer", bearerFormat: "JWT" }
 					}
 				}
 			},
@@ -109,6 +105,7 @@ const server = (dirname: string) =>
 			dir: join(dirname, "routes"),
 			matchFilter: path => path.endsWith("handler.js")
 		})
+		.get("/", () => "Hello!")
 
 const listenCallback = (err: Error | null, address: string) =>
 	pipe(
