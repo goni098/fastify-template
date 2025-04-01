@@ -123,7 +123,10 @@ const listenCallback = (err: Error | null, address: string) =>
 const resolveDirname = () => pipe(import.meta.url, fileURLToPath, dirname)
 
 function main() {
-	server(resolveDirname()).listen({ port: 9098 }, listenCallback)
+	server(resolveDirname()).listen(
+		{ port: 9098, host: "0.0.0.0" },
+		listenCallback
+	)
 }
 
 main()

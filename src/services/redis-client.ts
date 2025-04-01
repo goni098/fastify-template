@@ -1,4 +1,5 @@
 import { RedisException } from "@exceptions/redis.ex.js"
+import { REDIS_URL } from "@shared/env.js"
 import { Effect as E } from "effect"
 import { Redis } from "ioredis"
 
@@ -6,7 +7,7 @@ export class RedisClient {
 	private client: Redis
 
 	constructor() {
-		this.client = new Redis("redis://redis:6379")
+		this.client = new Redis(REDIS_URL)
 	}
 
 	get(key: string) {

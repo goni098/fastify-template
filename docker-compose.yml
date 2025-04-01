@@ -1,32 +1,38 @@
-version: '3.8'
-
 services:
-  server: 
-    build: .
-    depends_on:
-      - redis
-    environment:
-      DATABASE_URL: $DATABASE_URL
-      ACCESS_TOKEN_SECRET: $ACCESS_TOKEN_SECRET
-      RENEW_TOKEN_SECRET: $RENEW_TOKEN_SECRET
-    ports:
-      - "9098:9098"
-
   redis:
     image: redis:7
+    container_name: feft-redis
     ports:
       - "6379:6379"
     restart: always
+    volumes:
+      - ./volumes/redis:/data
+
   
   database:
     image: postgres:17.4
     restart: always
+    container_name: feft-db
     environment:
       POSTGRES_PASSWORD: $POSTGRES_PASSWORD
       POSTGRES_DB: $POSTGRES_DB
       POSTGRES_USER: $POSTGRES_USER
     ports:
       - "5432:5432"
-    labels:
-      com.swc.kind: "db"
+    volumes:
+      - ./volumes/db:/var/lib/postgresql/data
 
+  server: 
+    image: feft-server:1.0.0
+    build: .
+    container_name: feft-server
+    depends_on:
+      - redis
+      - database
+    environment:
+      DATABASE_URL: $DATABASE_URL
+      REDIS_URL: $REDIS_URL
+      ACCESS_TOKEN_SECRET: $ACCESS_TOKEN_SECRET
+      RENEW_TOKEN_SECRET: $RENEW_TOKEN_SECRET
+    ports:
+      - "9098:9098"
