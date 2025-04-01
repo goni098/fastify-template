@@ -37,7 +37,7 @@ const handler: FastifyPluginAsyncZod = async self => {
 					)
 				),
 				E.bind("user", ({ claims }) =>
-					self.repositories.user.findById(claims.sub)
+					self.repositories.user.findById({ id: claims.sub })
 				),
 				E.bind("tokens", ({ user }) => self.sign(user)),
 				E.tap(({ tokens, claims }) =>

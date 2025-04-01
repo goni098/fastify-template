@@ -3,9 +3,9 @@ import { BaseRepository } from "./_base.repository.js"
 
 export class EventRepository extends BaseRepository(eventTable) {
 	save(data: CreateEventInput) {
-		return this.insertOnConflictDoNothing(data, [
-			eventTable.digest,
-			eventTable.seq
-		])
+		return this.insertOnConflictDoNothing({
+			data,
+			conflict: [eventTable.digest, eventTable.seq]
+		})
 	}
 }

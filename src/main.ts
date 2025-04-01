@@ -76,56 +76,54 @@ const errorHandler = (
 		})
 	)
 
-const server = () =>
-	pipe(import.meta.url, fileURLToPath, dirname, __dirname =>
-		fastify()
-			.setValidatorCompiler(validatorCompiler)
-			.setSerializerCompiler(serializerCompiler)
-			.setErrorHandler(errorHandler)
-			.register(cors)
-			.register(fastifySensible)
-			.register(fastifySwagger, {
-				openapi: {
-					info: { title: "FEFT", version: "1.0.0" },
-					components: {
-						securitySchemes: {
-							bearerAuth: {
-								type: "http",
-								scheme: "bearer",
-								bearerFormat: "JWT"
-							}
-						}
+const server = (dirname: string) =>
+	fastify()
+		.setValidatorCompiler(validatorCompiler)
+		.setSerializerCompiler(serializerCompiler)
+		.setErrorHandler(errorHandler)
+		.register(cors)
+		.register(fastifySensible)
+		.register(fastifySwagger, {
+			openapi: {
+				info: { title: "FEFT", version: "1.0.0" },
+				components: {
+					securitySchemes: {
+						bearerAuth: { type: "http", scheme: "bearer", bearerFormat: "JWT" }
 					}
-				},
-				transform: jsonSchemaTransform
-			})
-			.register(fastifySwaggerUi, {
-				routePrefix: "/docs"
-			})
-			.register(autoLoad, {
-				dir: join(__dirname, "plugins", "autoload"),
-				encapsulate: false
-			})
-			.register(autoLoad, {
-				dir: join(__dirname, "routes"),
-				matchFilter: path => path.endsWith("handler.js")
-			})
+				}
+			},
+			transform: jsonSchemaTransform
+		})
+		.register(fastifySwaggerUi, {
+			routePrefix: "/docs"
+		})
+		.register(autoLoad, {
+			dir: join(dirname, "plugins", "autoload"),
+			encapsulate: false
+		})
+		.register(autoLoad, {
+			dir: join(dirname, "routes"),
+			matchFilter: path => path.endsWith("handler.js")
+		})
+		.get("/", () => "Hello!")
+
+const listenCallback = (err: Error | null, address: string) =>
+	pipe(
+		err,
+		O.fromNullable,
+		O.match({
+			onNone: () => console.log(`🦀 server is listening at ${address}`),
+			onSome: error => {
+				console.error(error)
+				process.exit(1)
+			}
+		})
 	)
 
-function main(): void {
-	server().listen({ port: 9098 }, (err, address) =>
-		pipe(
-			err,
-			O.fromNullable,
-			O.match({
-				onNone: () => console.log(`🦀 server is listening at ${address}`),
-				onSome: error => {
-					console.error(error)
-					process.exit(1)
-				}
-			})
-		)
-	)
+const resolveDirname = () => pipe(import.meta.url, fileURLToPath, dirname)
+
+function main() {
+	server(resolveDirname()).listen({ port: 9098 }, listenCallback)
 }
 
 main()

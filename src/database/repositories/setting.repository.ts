@@ -22,17 +22,23 @@ export type EventCursor = EventId
 export class SettingRepository extends BaseRepository(settingTable) {
 	get(key: Setting): Result<O.Option<string>, DatabaseException> {
 		return pipe(
-			this.findFirstBy(eq(settingTable.key, key), {
-				value: settingTable.value
+			this.findFirst({
+				filter: eq(settingTable.key, key)
 			}),
 			E.map(record => O.some(record.value)),
-			E.catchAll(() => E.succeed(O.none<string>()))
+			E.catchTag("NoSuchElementException", () => E.succeed(O.none<string>()))
 		)
 	}
 
 	set(key: Setting, value: string): Result<string, DatabaseException> {
 		return pipe(
-			this.upsert(eq(settingTable.key, key), { key, value }),
+			this.upsert({
+				data: {
+					key,
+					value
+				},
+				where: eq(settingTable.key, key)
+			}),
 			E.as(value)
 		)
 	}

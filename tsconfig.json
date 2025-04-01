@@ -35,6 +35,6 @@
 		"noFallthroughCasesInSwitch": true,
 		"allowUnreachableCode": false
 	},
-	"include": ["src/**/*.ts"],
+	"include": ["src/**/*.ts", "test/**/*.ts", "test-helper/**/*.ts"],
 	"exclude": ["node_modules"]
 }
