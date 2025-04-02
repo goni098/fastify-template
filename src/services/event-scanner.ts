@@ -60,7 +60,8 @@ export class EventScanner {
 		EventCursor,
 		DatabaseException | SuiClientException
 	> {
-		return this.settingRepository.getLastestCursor().pipe(
+		return pipe(
+			this.settingRepository.getLastestCursor(),
 			E.flatten,
 			E.catchTag("NoSuchElementException", () => this.web3.getFirstEventId()),
 			E.tap(cursor =>
@@ -76,7 +77,8 @@ export class EventScanner {
 		EventCursor,
 		DatabaseException | SuiClientException
 	> {
-		return this.settingRepository.getLastestCursor().pipe(
+		return pipe(
+			this.settingRepository.getLastestCursor(),
 			E.flatten,
 			E.catchTag("NoSuchElementException", () =>
 				E.dieMessage("Not found cursor from setting table")

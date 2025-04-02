@@ -45,7 +45,8 @@ const validateMessage = (
 	address: string,
 	message: string
 ): Result<void, RedisException | HttpException> =>
-	self.redis.get(userSignMsgKey(address)).pipe(
+	pipe(
+		self.redis.get(userSignMsgKey(address)),
 		E.flatMap(E.fromNullable),
 		E.tap(storedMessage =>
 			HttpException.Unauthorized("unmatch message").pipe(
