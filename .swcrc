@@ -22,5 +22,6 @@
 	},
 	"module": {
 		"type": "nodenext"
-	}
+	},
+	"sourceMaps": true
 }
