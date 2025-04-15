@@ -7,8 +7,6 @@ import { DateTime } from "luxon"
 import type { Result } from "#types/result.type.js"
 import { ACCESS_TOKEN_SECRET } from "../shared/env.js"
 
-export type SignPayload = { id: number; address: string } | { sub: number }
-
 export class JwtService {
 	sign(
 		payload: AuthData | { sub: number },
