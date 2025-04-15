@@ -19,14 +19,14 @@ const handler: FastifyPluginAsyncZod = async self => {
 				})
 			}
 		},
-		({ claims, query }, reply) =>
+		({ authData, query }, reply) =>
 			pipe(
 				self.web3.getOwnedObjects({
 					options: { showContent: true, showType: true },
 					filter: {
 						StructType: `${Web3Client.PACKAGE_ID}::${Web3Client.VENDING_MACHINE_MODULE}::Nft`
 					},
-					owner: claims.address,
+					owner: authData.address,
 					limit: query.limit,
 					cursor: query.cursor
 				}),

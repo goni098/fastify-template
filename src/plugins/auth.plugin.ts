@@ -4,9 +4,13 @@ import type { FastifyPluginAsync, FastifyRequest } from "fastify"
 import fastifyPlugin from "fastify-plugin"
 import type { Result } from "#types/result.type.js"
 
-export type Claims = {
+export interface AuthData {
 	id: number
 	address: string
+}
+
+export type Claims<T = AuthData> = {
+	data: T
 	iat: number
 	exp: number
 }
@@ -15,10 +19,10 @@ const plugin: FastifyPluginAsync = async self => {
 	self.addHook("onRequest", async (request, reply) =>
 		pipe(
 			lookupToken(request),
-			E.flatMap(token => self.jwt.verify<Claims>(token)),
+			E.flatMap(token => self.jwt.verify<AuthData>(token)),
 			E.tap(claims =>
 				E.sync(() => {
-					request.claims = claims
+					request.authData = claims.data
 				})
 			),
 			reply.unwrapResult

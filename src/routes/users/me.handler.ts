@@ -16,9 +16,9 @@ const handler: FastifyPluginAsyncZod = async self => {
 				}
 			}
 		},
-		({ claims }, reply) =>
+		({ authData }, reply) =>
 			pipe(
-				self.repositories.user.findById({ id: claims.id }),
+				self.repositories.user.findById({ id: authData.id }),
 				reply.unwrapResult
 			)
 	)

@@ -1,7 +1,9 @@
 import { JwtSignException } from "@exceptions/jwt-sign.ex.js"
 import { JwtVerifyException } from "@exceptions/jwt-verify.ex.js"
-import { Boolean as B, Effect as E, pipe } from "effect"
-import jwt from "jsonwebtoken"
+import { sign, verify } from "@node-rs/jsonwebtoken"
+import type { AuthData, Claims } from "@plugins/auth.plugin.js"
+import { Effect as E, pipe } from "effect"
+import { DateTime } from "luxon"
 import type { Result } from "#types/result.type.js"
 import { ACCESS_TOKEN_SECRET } from "../shared/env.js"
 
@@ -9,38 +11,26 @@ export type SignPayload = { id: number; address: string } | { sub: number }
 
 export class JwtService {
 	sign(
-		payload: string | Buffer | object,
-		expiresIn: jwt.SignOptions["expiresIn"],
+		payload: AuthData | { sub: number },
+		expiresInSecs: number,
 		secret = ACCESS_TOKEN_SECRET
 	): Result<string, JwtSignException> {
-		return E.async(resume =>
-			jwt.sign(payload, secret, { expiresIn }, (error, token) =>
-				pipe(
-					!error,
-					B.match({
-						onTrue: () => E.succeed(token!).pipe(resume),
-						onFalse: () => E.fail(new JwtSignException({ error })).pipe(resume)
-					})
-				)
-			)
+		return pipe(DateTime.now().toSeconds(), iat =>
+			E.tryPromise({
+				try: () =>
+					sign({ data: payload, iat, exp: iat + expiresInSecs }, secret),
+				catch: error => new JwtSignException({ error })
+			})
 		)
 	}
 
 	verify<T>(
 		token: string,
 		secret = ACCESS_TOKEN_SECRET
-	): Result<T, JwtVerifyException> {
-		return E.async(resume =>
-			jwt.verify(token, secret, (error, payload) =>
-				pipe(
-					!error,
-					B.match({
-						onTrue: () => E.succeed(payload as T).pipe(resume),
-						onFalse: () =>
-							E.fail(new JwtVerifyException({ error })).pipe(resume)
-					})
-				)
-			)
-		)
+	): Result<Claims<T>, JwtVerifyException> {
+		return E.tryPromise({
+			try: () => verify(token, secret) as Promise<Claims<T>>,
+			catch: error => new JwtVerifyException({ error })
+		})
 	}
 }

@@ -20,7 +20,7 @@ import type { UserRepository } from "./database/repositories/user.repository.js"
 import type { User } from "./database/schemas/user.schema.js"
 import type { DatabaseException } from "./exceptions/database.ex.js"
 import type { JwtSignException } from "./exceptions/jwt-sign.ex.js"
-import type { Claims } from "./plugins/auth.plugin.js"
+import type { AuthData } from "./plugins/auth.plugin.js"
 import type { Tokens } from "./plugins/autoload/jwt.plugin.js"
 import type { JwtService } from "./services/jwt-service.js"
 import type { RedisClient } from "./services/redis-client.js"
@@ -47,7 +47,7 @@ declare module "fastify" {
 	}
 
 	interface FastifyRequest {
-		claims: Claims
+		authData: AuthData
 	}
 
 	interface FastifyReply {
