@@ -6,14 +6,9 @@ import { UserRepository } from "@database/repositories/user.repository.js"
 import { pipe } from "effect"
 import type { FastifyPluginAsync } from "fastify"
 
-interface Repositories {
-	user: UserRepository
-	renewToken: RenewTokenRepository
-	setting: SettingRepository
-	event: EventRepository
-}
+export type Repositories = ReturnType<typeof intitRepositories>
 
-const intitRepositories = (db: Db): Repositories => ({
+const intitRepositories = (db: Db) => ({
 	user: new UserRepository(db),
 	setting: new SettingRepository(db),
 	renewToken: new RenewTokenRepository(db),

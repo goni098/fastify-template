@@ -5,6 +5,7 @@ import cors from "@fastify/cors"
 import fastifySensible from "@fastify/sensible"
 import fastifySwagger from "@fastify/swagger"
 import fastifySwaggerUi from "@fastify/swagger-ui"
+import type { Repositories } from "@plugins/autoload/database.plugin.js"
 import { Match as M, Option as O, pipe } from "effect"
 import { isNoSuchElementException } from "effect/Cause"
 import fastify, { type FastifyReply, type FastifyRequest } from "fastify"
@@ -13,10 +14,6 @@ import {
 	serializerCompiler,
 	validatorCompiler
 } from "fastify-type-provider-zod"
-import type { EventRepository } from "./database/repositories/event.repository.js"
-import type { RenewTokenRepository } from "./database/repositories/renew-token.repository.js"
-import type { SettingRepository } from "./database/repositories/setting.repository.js"
-import type { UserRepository } from "./database/repositories/user.repository.js"
 import type { User } from "./database/schemas/user.schema.js"
 import type { DatabaseException } from "./exceptions/database.ex.js"
 import type { JwtSignException } from "./exceptions/jwt-sign.ex.js"
@@ -34,12 +31,7 @@ import {
 
 declare module "fastify" {
 	interface FastifyInstance {
-		repositories: {
-			user: UserRepository
-			renewToken: RenewTokenRepository
-			setting: SettingRepository
-			event: EventRepository
-		}
+		repositories: Repositories
 		sign: (user: User) => Result<Tokens, DatabaseException | JwtSignException>
 		jwt: JwtService
 		web3: Web3Client
