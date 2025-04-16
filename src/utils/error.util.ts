@@ -1,6 +1,6 @@
 import { Boolean as B, pipe } from "effect"
 import { constVoid } from "effect/Function"
-import type { FastifyError, FastifyRequest } from "fastify"
+import type { FastifyError, FastifyReply, FastifyRequest } from "fastify"
 import { DateTime } from "luxon"
 import type { HttpExceptionResponse, IntoResponse } from "#types/result.type.js"
 
@@ -27,10 +27,10 @@ export const fromUnknownToResponse = <
 		tag: ex._tag
 	}))
 
-export const traceError = (
+const traceException = (
 	request: FastifyRequest,
 	response: HttpExceptionResponse,
-	originalError: unknown
+	exception: IntoResponse
 ) =>
 	pipe(
 		response.code === 500,
@@ -41,8 +41,19 @@ export const traceError = (
 					timestamp: DateTime.now().toISO(),
 					endpoint: request.url,
 					method: request.method,
-					originalError
+					exception
 				})
 		}),
 		() => response
+	)
+
+export const handleException = (
+	exception: IntoResponse,
+	request: FastifyRequest,
+	reply: FastifyReply
+) =>
+	pipe(
+		exception.intoResponse(),
+		response => traceException(request, response, exception),
+		response => reply.status(response.code).send(response)
 	)

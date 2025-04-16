@@ -25,8 +25,8 @@ import type { Web3Client } from "./services/web3-client.js"
 import type { Result } from "./types/result.type.js"
 import {
 	canIntoResponse,
-	isFastifyError,
-	traceError
+	handleException,
+	isFastifyError
 } from "./utils/error.util.js"
 
 declare module "fastify" {
@@ -55,13 +55,7 @@ const errorHandler = (
 	M.value(error).pipe(
 		M.when(isFastifyError, err => reply.send(err)),
 		M.when(isNoSuchElementException, ex => reply.internalServerError(ex._tag)),
-		M.when(canIntoResponse, ex =>
-			pipe(
-				ex.intoResponse(),
-				response => traceError(request, response, error),
-				response => reply.status(response.code).send(response)
-			)
-		),
+		M.when(canIntoResponse, ex => handleException(ex, request, reply)),
 		M.orElse(err => {
 			console.error("untagged error: ", err)
 			return reply.internalServerError()
