@@ -98,7 +98,7 @@ const listenCallback = (err: Error | null, address: string) =>
 		err,
 		O.fromNullable,
 		O.match({
-			onNone: () => console.log(`🦀 server is listening at ${address}`),
+			onNone: () => console.log(`🐆 server is listening at ${address}`),
 			onSome: error => {
 				console.error(error)
 				process.exit(1)
