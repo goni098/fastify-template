@@ -1,38 +1,38 @@
 services:
-  redis:
+  dev-redis:
     image: redis:7
-    container_name: feft-redis
+    container_name: dev-feft-redis
     ports:
-      - "6379:6379"
+      - "9001:6379"
     restart: always
     volumes:
-      - ./volumes/redis:/data
+      - ./volumes/dev/redis:/data
 
   
-  database:
+  dev-database:
     image: postgres:17.4
     restart: always
-    container_name: feft-db
+    container_name: dev-feft-db
     environment:
       POSTGRES_PASSWORD: $POSTGRES_PASSWORD
       POSTGRES_DB: $POSTGRES_DB
       POSTGRES_USER: $POSTGRES_USER
     ports:
-      - "5432:5432"
+      - "9000:5432"
     volumes:
-      - ./volumes/db:/var/lib/postgresql/data
+      - ./volumes/dev/db:/var/lib/postgresql/data
 
-  server: 
-    image: feft-server:1.0.0
+  dev-server: 
+    image: feft-server:latest
     build: .
-    container_name: feft-server
+    container_name: dev-feft-server
     depends_on:
-      - redis
-      - database
+      - dev-redis
+      - dev-database
     environment:
       DATABASE_URL: $DATABASE_URL
       REDIS_URL: $REDIS_URL
       ACCESS_TOKEN_SECRET: $ACCESS_TOKEN_SECRET
       RENEW_TOKEN_SECRET: $RENEW_TOKEN_SECRET
     ports:
-      - "9098:9098"
+      - "8080:9098"
